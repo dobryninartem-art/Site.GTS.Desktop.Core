@@ -1,5 +1,6 @@
-using System.Globalization;
-using Gts.Api.Compatibility;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Gts.Api.Infrastructure;
 using Gts.Api.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -7,49 +8,32 @@ using Microsoft.AspNetCore.Mvc;
 namespace Gts.Api.Controllers;
 
 /// <summary>
-/// ASMX-совместимый фасад для App.asmx (перенесён представительный срез из 122 методов).
+/// ОБРАЗЕЦ НОВОГО СТИЛЯ для части функций App.asmx (справочники пользователя).
+/// Рабочие клиенты пока ходят на /Services/App.asmx/* — см. Compat/AsmxDispatcher.
 /// </summary>
 [ApiController]
-[Route("Services/App.asmx")]
+[Route("api/v1/users/{user}")]
 [Produces("application/json")]
 public sealed class AppController : ControllerBase
 {
     private readonly AppService _svc;
     public AppController(AppService svc) => _svc = svc;
 
-    public sealed record UserRequest(string? User);
+    [HttpGet("networks")]
+    public async Task<ActionResult<List<Row>>> Networks(string user, CancellationToken ct) => await _svc.GetNetworkAsync(user, ct);
 
-    [HttpPost("GetServerDate")]
-    public IActionResult GetServerDate()
-    {
-        // ВНИМАНИЕ: legacy использовал формат "dd.mm.yyyy", где mm — это МИНУТЫ, а не месяц.
-        // Это существующий баг в оригинале. Для верности порта оставляем поведение,
-        // но в MIGRATION.md помечено как кандидат на исправление ("dd.MM.yyyy").
-        var legacyLiteral = DateTime.Now.ToString("dd.mm.yyyy", CultureInfo.InvariantCulture);
-        return AsmxResult.FromJsonString(legacyLiteral);
-    }
+    [HttpGet("points")]
+    public async Task<ActionResult<List<Row>>> Points(string user, CancellationToken ct) => await _svc.GetPointAsync(user, ct);
 
-    [HttpPost("GetNetwork")]
-    public async Task<IActionResult> GetNetwork([FromBody] UserRequest req, CancellationToken ct)
-        => AsmxResult.FromJsonString(LegacyJson.SerializeRows(await _svc.GetNetworkAsync(req.User, ct)));
+    [HttpGet("categories")]
+    public async Task<ActionResult<List<Row>>> Categories(string user, CancellationToken ct) => await _svc.GetCategoryAsync(user, ct);
 
-    [HttpPost("GetPoint")]
-    public async Task<IActionResult> GetPoint([FromBody] UserRequest req, CancellationToken ct)
-        => AsmxResult.FromJsonString(LegacyJson.SerializeRows(await _svc.GetPointAsync(req.User, ct)));
+    [HttpGet("brands")]
+    public async Task<ActionResult<List<Row>>> Brands(string user, CancellationToken ct) => await _svc.GetBrandAsync(user, ct);
 
-    [HttpPost("GetCategory")]
-    public async Task<IActionResult> GetCategory([FromBody] UserRequest req, CancellationToken ct)
-        => AsmxResult.FromJsonString(LegacyJson.SerializeRows(await _svc.GetCategoryAsync(req.User, ct)));
+    [HttpGet("arts")]
+    public async Task<ActionResult<List<Row>>> Arts(string user, CancellationToken ct) => await _svc.GetArtAsync(user, ct);
 
-    [HttpPost("GetBrand")]
-    public async Task<IActionResult> GetBrand([FromBody] UserRequest req, CancellationToken ct)
-        => AsmxResult.FromJsonString(LegacyJson.SerializeRows(await _svc.GetBrandAsync(req.User, ct)));
-
-    [HttpPost("GetArt")]
-    public async Task<IActionResult> GetArt([FromBody] UserRequest req, CancellationToken ct)
-        => AsmxResult.FromJsonString(LegacyJson.SerializeRows(await _svc.GetArtAsync(req.User, ct)));
-
-    [HttpPost("GetCompanySetting")]
-    public async Task<IActionResult> GetCompanySetting([FromBody] UserRequest req, CancellationToken ct)
-        => AsmxResult.FromJsonString(LegacyJson.SerializeRows(await _svc.GetCompanySettingAsync(req.User, ct)));
+    [HttpGet("company-setting")]
+    public async Task<ActionResult<List<Row>>> CompanySetting(string user, CancellationToken ct) => await _svc.GetCompanySettingAsync(user, ct);
 }

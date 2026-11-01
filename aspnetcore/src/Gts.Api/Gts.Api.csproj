@@ -1,20 +1,43 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <!-- LTS. При желании можно поднять до net10.0, когда закрепитесь на нём. -->
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Неявные using отключены: в перенесённом коде есть пространства имён Action, Framework, Report и т.п.,
+         которые конфликтовали бы с одноимёнными типами .NET. Все using прописаны явно. -->
+    <ImplicitUsings>disable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Gts.Api</RootNamespace>
-    <!-- Исходники ведём в UTF-8, в отличие от legacy (Windows-1251). -->
+    <!-- Предупреждения перенесённого кода, которые не влияют на поведение:
+         CS0168/CS0219 — неиспользуемые переменные; CS0162 — недостижимый код; CS0618/SYSLIB0014 — устаревшие API
+         (WebClient, HttpWebRequest) из smsc_api.cs; CA1416 — System.Drawing работает только под Windows. -->
+    <NoWarn>$(NoWarn);CS0168;CS0219;CS0162;CS0618;SYSLIB0014;CA1416;CS8632</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup>
-    <!-- Современный SQL-клиент (замена System.Data.SqlClient из .NET Framework). -->
+  <!-- Обычная сборка (Visual Studio, dotnet build): настоящие пакеты NuGet. -->
+  <ItemGroup Condition="'$(OfflineCheck)' != 'true'">
+    <!-- Замена System.Data.SqlClient из .NET Framework. -->
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
-    <!-- OpenAPI/Swagger — то, чего принципиально не было у ASMX. -->
+    <!-- System.Drawing (Bitmap, Graphics) для обработки фото. Работает только под Windows. -->
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
+    <!-- Swagger UI для адресов /api/v1/*. -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <!-- Проверочная сборка без доступа к NuGet: dotnet build -p:OfflineCheck=true
+       Вместо пакетов подставляются заглушки из ../../offline-stubs (только для проверки компиляции). -->
+  <PropertyGroup Condition="'$(OfflineCheck)' == 'true'">
+    <DefineConstants>$(DefineConstants);OFFLINE_CHECK</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(OfflineCheck)' == 'true'">
+    <Compile Include="..\..\offline-stubs\**\*.cs" />
+  </ItemGroup>
+
+  <!-- Архивы фото (Archive.asmx): та же библиотека, что лежала в source/Bin. -->
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\..\lib\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

@@ -1,187 +1,88 @@
-# Миграция GTS с ASMX (.NET Framework 4.8) на ASP.NET Core Web API
+# Перевод GTS с ASMX (.NET Framework 4.8) на ASP.NET Core (.NET 8)
 
-Эта папка — **фундамент и эталон** миграции, а не законченный перенос. Она создана в
-ветке `feature/aspnetcore-migration` рядом с legacy-кодом (`/source`), не трогая его
-(подход *strangler fig*: старое и новое работают параллельно, перенос идёт по частям).
-
-> ⚠️ Код **не собран и не протестирован** в среде, где он готовился: там нет .NET SDK
-> и SQL Server. Он написан «компилируемым по построению», но первую сборку и прогон
-> против реальной БД нужно выполнить у вас (`dotnet build`, затем интеграционные
-> проверки ответов). Всё, что помечено ниже как «проверить», — обязательно к проверке.
-
----
-
-## 1. Главный принцип: не сломать мобильные приложения
-
-Android (`ServerConnection.kt`) и, почти наверняка, iPhone обращаются к серверу так:
-
-| Что | Значение |
-|-----|----------|
-| URL | `{BASE_URL}/Services/{Сервис}.asmx/{Метод}` (имя сервиса хранится с `.asmx`) |
-| Метод | `POST` |
-| Content-Type | `application/json` |
-| Тело | JSON-объект именованных параметров: `{"User":"123","Point":"45"}` |
-| Разбор ответа | `JSONObject(body)["d"]` — ждёт обёртку **`{"d": ...}`** (подпись ASMX ScriptService) |
-
-**Вывод:** если новый API сохраняет эти правила — мобильные клиенты не меняются вообще
-(ноль правок, ноль релизов в сторах, ничего не выкатывать на полевые устройства).
-Именно это здесь и сделано: контроллеры отвечают по маршрутам `Services/*.asmx/Method`
-и заворачивают payload в `{"d": ...}` (см. `Compatibility/AsmxResult.cs`).
-
-Позже рядом можно добавить чистые REST-эндпоинты (`/api/...`) и переводить клиентов
-на них постепенно — старый фасад при этом продолжает работать.
-
----
-
-## 2. Детали совместимости, критичные для «drop-in» (проверить на реальных ответах)
-
-Эти вещи ломают клиентов тихо (HTTP 200, но данные не парсятся), поэтому воспроизведены
-намеренно — см. `Infrastructure/LegacyJson.cs`:
-
-1. **Даты.** Старый `JavaScriptSerializer` отдавал `"\/Date(МИЛЛИСЕКУНДЫ)\/"`, а не ISO-8601.
-   Повторено. Если отдать ISO (как делает System.Text.Json по умолчанию) — разбор дат на
-   клиенте сломается. **Проверить** на колонке с датой, что формат совпадает байт-в-байт.
-2. **`DBNull` → `null`**, **`byte[]` → base64-строка**, **`Guid` → строка** — воспроизведено.
-3. **Строка в поле `d`.** Legacy-методы возвращали строку, и ScriptService клал её как
-   строку: `{"d":"[{...}]"}`. Для методов, возвращавших не строку (`ConnectionSetting` →
-   `string[]`), payload кладётся как массив: `{"d":[...]}`. Оба варианта поддержаны
-   (`AsmxResult.FromJsonString` / `FromRawJson`).
-4. **`GetServerDate`** в оригинале форматирует `"dd.mm.yyyy"` — где `mm` это **минуты**,
-   а не месяц (баг оригинала). Порт сохраняет поведение буквально; решите, чинить ли на
-   `"dd.MM.yyyy"` — это изменение поведения, поэтому вынесено в открытые вопросы (§6).
-
----
-
-## 3. Что уже перенесено в этой ветке
+## 1. Как устроено
 
 ```
 aspnetcore/
   Gts.Api.sln
   src/Gts.Api/
-    Program.cs                     — DI, маршрутизация, Swagger, https-redirect
-    appsettings.json               — БЕЗ секретов; строка подключения из окружения
-    Infrastructure/
-      IDatabase.cs / SqlDatabase.cs — async-замена StoredProc (Select/SelectMany/Execute)
-      LegacyJson.cs                 — сериализация, совместимая с JavaScriptSerializer
-      Row.cs
-    Compatibility/
-      AsmxResult.cs                 — конверт {"d": ...}
-    Security/
-      PhotoPath.cs                  — безопасный путь к фото (фикс обхода каталога)
-    Services/
-      SystemService.cs             — порт SystemBusiness (Logon/Authorization/UserExist/…)
-      AppService.cs                — срез AppBusiness (GetNetwork/GetPoint/GetCategory/…)
-    Controllers/
-      SystemController.cs          — Services/System.asmx/*  (эталон: авторизация + фото)
-      AppController.cs             — Services/App.asmx/*      (эталон: массовый паттерн чтения)
+    Program.cs        — запуск: конфигурация, раздача сайта, маршруты
+    Legacy/           — ВЕСЬ код из source/App_Code и source/*.aspx.cs, перенесённый почти дословно
+      Pages/          — бывшие upload.aspx, uploadUser.aspx, uploadExcel.aspx, soundUploader.aspx, Refresh.aspx
+    Compat/           — слой совместимости: то, чего нет в .NET 8, но использует старый код
+      SystemWeb.cs            HttpContext.Current, Server.MapPath, Request/Response, WebService, [WebMethod], Page
+      ConfigurationManager.cs AppSettings / ConnectionStrings из appsettings.json и секретов
+      JavaScriptSerializer.cs JSON в формате .NET Framework (даты \/Date(мс)\/, экранирование <>&')
+      AsmxDispatcher.cs       обработчик /Services/{Служба}.asmx/{Метод}
+      LegacySite.cs           раздача source/ (html, js, фото) и страниц *.aspx
+    Controllers/, Services/, Infrastructure/
+                      — образцы нового стиля (REST + async + DI) на /api/v1/*: System, App, Visit
+  lib/                — ICSharpCode.SharpZipLib.dll (та же, что в source/Bin)
+  offline-stubs/      — заглушки пакетов для проверочной сборки без NuGet; в VS не используются
 ```
 
-Эти два сервиса — **копируемый образец**: на них видно все три типовых случая
-(чтение по `@User`, многопараметрическая авторизация, файловый метод с фиксом безопасности).
+Путь запроса из `desktop/visit.js`:
 
----
-
-## 4. Улучшения, уже заложенные в фундамент
-
-- **async/await** на всём пути к БД — сервер держит кратно больше одновременных запросов.
-- **Секреты вне кода.** Строка подключения читается из `ConnectionStrings__Database`
-  (окружение) или User Secrets; в репозитории её нет. (В legacy она лежала в `Web.config`
-  под `sa` открытым текстом.) **Отдельная задача (не код):** сменить засвеченные пароли —
-  `sa` в `source/Web.config` и SMS-шлюз в `source/App_Code/smsc_api.cs` — и завести для
-  приложения SQL-учётку с минимальными правами (`EXECUTE` на нужные процедуры), а не `sa`.
-- **Убрана гонка мультиарендности.** Вместо статического `StoredProc.BaseName` и замены
-  подстроки `"GTS"` в строке подключения — выбор базы через `InitialCatalog` и передача
-  базы параметром; имя базы берётся из `SYSTEM.GetBase(@User)`.
-- **Фикс обхода каталога** в `GetPhotoBase64` (`Security/PhotoPath.cs`).
-- **https-redirect** включён в проде (в legacy был закомментирован).
-- Исходники в **UTF-8** (в legacy — Windows-1251).
-
----
-
-## 5. Инвентаризация: сколько осталось
-
-~**510 методов** в **20 ASMX-эндпоинтах**. Три эндпоинта `API*.asmx` используют один
-`API.cs`. Порядок переноса рекомендую по важности для мобильных/боевых сценариев.
-
-| Эндпоинт | Методов | Код legacy | Статус |
-|----------|--------:|------------|--------|
-| System.asmx | 15 | System.cs | ✅ эталон (перенесены ключевые) |
-| App.asmx | 122 | App.cs | 🟡 срез-эталон (6 методов), остальное по образцу |
-| App2.asmx | 25 | App2.cs | ⬜ |
-| AppRh.asmx | 97 | AppRh.cs | ⬜ |
-| AppToken.asmx | 27 | AppToken.cs | ⬜ |
-| UI.asmx | 73 | UI.cs | ⬜ |
-| Report.asmx | 50 | Report.cs | ⬜ |
-| Desktop.asmx | 29 | Desktop.cs | ⬜ |
-| Framework.asmx | 15 | Framework.cs | ⬜ |
-| BI.asmx | 12 | BI.cs | ⬜ |
-| Custom.asmx | 10 | Custom.cs | ⬜ |
-| Action.asmx | 9 | Action.cs | ⬜ |
-| Replication.asmx | 9 | Replication.cs | ⬜ |
-| API.asmx / API_ARK / API_ELEMENT | 8 (общий) | API.cs | ⬜ |
-| Visit.asmx | 5 | Visit.cs | ⬜ |
-| AI.asmx | 2 | AI.cs | ⬜ |
-| Archive.asmx | 2 | Archive.cs | ⬜ |
-| ExcelPS.asmx | — | ExcelPS.cs | ⬜ |
-
----
-
-## 6. Рецепт переноса одного метода (по эталону)
-
-Для метода `App.asmx/GetPoint` (чтение по `@User`):
-
-1. **Бизнес-метод** в соответствующем `*Service.cs`:
-   ```csharp
-   public Task<List<Row>> GetPointAsync(string? user, CancellationToken ct) =>
-       ByUser("APP.GetPoint", user, ct);   // имя процедуры и параметры 1:1 с legacy
-   ```
-2. **Действие контроллера** в `*Controller.cs` под маршрутом сервиса:
-   ```csharp
-   [HttpPost("GetPoint")]
-   public async Task<IActionResult> GetPoint([FromBody] UserRequest req, CancellationToken ct)
-       => AsmxResult.FromJsonString(LegacyJson.SerializeRows(await _svc.GetPointAsync(req.User, ct)));
-   ```
-3. Параметры метода → поля `record`-запроса (имена **точно** как в legacy: `User`, `Phone`…).
-4. Для методов-записи (void/Execute) — `IDatabase.ExecuteAsync`, результат оборачивать так же.
-5. Для методов с OUTPUT-параметром — см. `SystemService.GetBaseAsync`.
-6. Для методов с базой пользователя — получить её `GetBaseAsync(User)` и передать в `SelectAsync(..., baseName)`.
-
-Параметро-тяжёлые сервисы (напр. `API.SetAnswer` с 10 необязательными) можно биндить
-на `Dictionary<string,string?>` вместо record — но record даёт OpenAPI-документацию.
-
----
-
-## 7. Открытые вопросы (решить до продакшена)
-
-- **Авторизация (IDOR).** В legacy `EnableSession=true`, но `Session` не читается, а `User`
-  принимается от клиента без сверки. В Core это надо закрыть по-настоящему: cookie/JWT и
-  проверка, что `User` из тела принадлежит аутентифицированному субъекту. Пока фасад
-  воспроизводит старое поведение — **не выкатывать в прод без этого слоя.**
-- **Пароли.** Проверить, хэширует ли `SYSTEM.SetUserPass`/`Logon` пароли на стороне БД;
-  если нет — отдельная задача по хэшированию (вне транспортного слоя).
-- **`GetServerDate`**: чинить ли `mm`→`MM` (меняет поведение).
-- **Формат дат** `/Date()/`: подтвердить на реальных ответах, что клиенты ждут именно его.
-- **Загрузка файлов/фото** (`upload.aspx`, чанки `CHUNK_SIZE`): перенести как отдельные
-  эндпоинты с `IFormFile`/потоковым приёмом — паттерн здесь ещё не заложен.
-
----
-
-## 8. Как собрать и запустить (у вас, с .NET 8 SDK)
-
-```bash
-cd aspnetcore
-dotnet restore
-dotnet build                      # первая проверка компиляции
-# строка подключения — через секреты, не в файл:
-cd src/Gts.Api
-dotnet user-secrets init
-dotnet user-secrets set "ConnectionStrings:Database" "Data Source=...;Initial Catalog=GTS;User ID=gts_app;Password=***;Encrypt=True;TrustServerCertificate=True"
-dotnet run                        # Swagger на /swagger
+```
+$.ajax({ url: '../Services/Visit.asmx/Run', data: JSON.stringify({...}) })      ← JS не менялся
+  → AsmxDispatcher: служба Visit.asmx → класс Visit.Framework (Legacy/Visit.cs)
+  → параметры из JSON по именам → вызов метода Run(...)                        ← код метода не менялся
+  → VisitBusiness.Run → StoredProc.Select → процедура в SQL Server              ← Legacy/DbProc.cs
+  → ShareMethods.SerializeDataJSON → строка JSON
+  → AsmxDispatcher заворачивает в {"d":"[...]"}                                 ← как делал IIS
 ```
 
-Проверка совместимости (пример):
-```bash
-curl -s -X POST http://localhost:5443/Services/App.asmx/GetPoint \
-  -H "Content-Type: application/json" -d '{"User":"123"}'
-# ожидаем: {"d":"[{...}]"}  — и сверяем формат с ответом боевого ASMX
-```
+**Почему так, а не переписать всё заново.** В 511 методах около 150 содержат собственную логику
+(обработка фото, проверки, zip, Excel). Переписать их без возможности прогнать на реальной базе —
+значит почти наверняка где-то поменять поведение. Перенос «как есть» поверх слоя совместимости
+сохраняет поведение, а модернизировать дальше можно по одной службе, сверяясь с работающим образцом.
+Так же Microsoft рекомендует переводить приложения с System.Web (System.Web adapters).
+
+## 2. Что проверено при подготовке
+
+Сборка без ошибок (в режиме без NuGet, с заглушками пакетов). Запуск сервера без базы данных:
+
+- раздача `index.html`, `desktop/*`, `webix/*`; закрыты `App_Code/`, `Bin/`, `Web.config`, `logs/`, `*.cs`;
+- все **511** методов во всех **20** службах находятся диспетчером (сверено с исходниками);
+- формат ответов: `{"d":"..."}` для строк, `{"d":[...]}` для массивов (`ConnectionSetting`), `{"d":null}` для void;
+- экранирование `< > & '` → `\u003c \u003e \u0026 \u0027`, как у JavaScriptSerializer;
+- адрес `APP.asmx` (в другом регистре, как в edit_visit.js) работает; лишние параметры (`GUID`) игнорируются;
+- ошибки — HTTP 500 с `{"Message","StackTrace","ExceptionType"}`, нет параметра — текст как у ASMX;
+- загрузка файлов через `uploadUser.aspx`, `uploadExcel.aspx`, `soundUploader.aspx`; поток `Refresh.aspx`;
+- ошибки БД пишутся старым кодом в `logs/errors.log`, сервер при этом не падает.
+
+**Не проверено (нет базы и Windows):** реальные ответы процедур, обработка фото через System.Drawing,
+zip-архивы, отправка SMS и почты. Это и есть предмет вашего тестирования.
+
+## 3. Отличия от старого сайта
+
+| Что | Было | Стало | Почему |
+|---|---|---|---|
+| Секреты | пароль `sa` в Web.config, пароль SMS в коде | User Secrets / переменные окружения | не храним пароли в репозитории |
+| Стек ошибок в ответе | всегда (`customErrors=Off`) | только при разработке | не раскрываем детали в проде |
+| https | редирект закомментирован | включён вне режима разработки | |
+| Журнал `logs/errors.log` | IIS не отдавал `.log` | закрыт явно | иначе статика .NET отдала бы его |
+| Необязательные параметры (`object Answer = null`) | — | если не переданы, берётся значение по умолчанию | мягче, чем ASMX |
+| Драйвер SQL | System.Data.SqlClient | Microsoft.Data.SqlClient, `Encrypt=False`, если не задано | прежнее поведение подключения |
+
+## 4. Ограничения
+
+- **System.Drawing работает только под Windows.** Для локального теста и IIS это не проблема.
+  Для Linux/Docker обработку фото нужно перевести на ImageSharp или SkiaSharp.
+- **SOAP не поддерживается** — только JSON-вызовы (как у сайта и мобильных приложений). Если внешние
+  системы (интеграции `API_ARK.asmx`, `API_ELEMENT.asmx`) вызывают службы по SOAP/XML, их нужно проверить
+  отдельно — скажите, добавлю.
+- `ExcelPS.asmx` запускает `D:\transfer_clients\SQLtoXLS.ps1` — работает только на сервере, где этот скрипт есть.
+- Сохранена гонка старого кода: статическое `StoredProc.BaseName` общее для всех пользователей.
+
+## 5. Что дальше (после проверки)
+
+1. **Публикация.** IIS + ASP.NET Core Hosting Bundle (In-Process). Сайт и API в одном приложении,
+   `source/` указывается настройкой `Gts:LegacyWebRoot`.
+2. **Безопасность** (не исправлялась, чтобы не менять поведение при сверке):
+   - `User` в каждом методе приходит от клиента и не сверяется с сессией — можно читать чужие данные;
+   - `System.asmx/GetPhotoBase64` читает файл по пути из запроса (возможен выход за пределы `Photos`) —
+     исправленный вариант есть в `/api/v1/system/photo-base64`;
+   - сменить засвеченные пароли `sa` и SMS-шлюза.
+3. **Модернизация по службам.** Переносить службу из `Legacy/` в `Controllers/` + `Services/`
+   по образцу `Visit`, `System`, `App` (async, DI, типизированные параметры), сверяя ответы со старой версией.

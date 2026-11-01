@@ -1,27 +1,46 @@
-# Gts.Api — порт GTS на ASP.NET Core Web API
+# GTS на ASP.NET Core (.NET 8)
 
-Фундамент миграции legacy ASMX-сайта (`/source`, .NET Framework 4.8) на ASP.NET Core 8.
-Делается подходом *strangler fig*: новый API поднимается рядом и совместим с текущими
-клиентами, перенос методов идёт по частям.
+Весь сайт `source/` (страницы, JS, 511 веб-методов `/Services/*.asmx/*`, загрузка файлов `*.aspx`)
+запускается одним приложением .NET 8. JS-файлы, Android и iPhone **не меняются**: адреса и формат
+ответов (`{"d": ...}`) те же, что у старого ASMX.
 
-**Ключевое:** API сохраняет контракт ASMX (`POST /Services/{Сервис}.asmx/{Метод}`,
-JSON-объект параметров, ответ в обёртке `{"d": ...}`), поэтому **мобильные приложения
-(Android/iPhone) переписывать не нужно** — см. подробности и статус в [MIGRATION.md](./MIGRATION.md).
+## Запуск в Visual Studio 2022
 
-Статус: эталон на сервисах `System` и `App`. Код не собран в среде подготовки
-(нет .NET SDK/SQL Server) — сборку и тесты против БД выполнить у себя.
+Нужны: VS 2022 **17.8+** и рабочая нагрузка **ASP.NET and web development** (в неё входит .NET 8 SDK).
 
-## Структура
-- `src/Gts.Api/Infrastructure` — async-слой БД + совместимая сериализация
-- `src/Gts.Api/Compatibility` — конверт `{"d": ...}`
-- `src/Gts.Api/Services` — бизнес-логика (порты `*Business`)
-- `src/Gts.Api/Controllers` — ASMX-совместимые маршруты
-- `src/Gts.Api/Security` — фикс безопасного пути к фото
+1. Переключитесь на ветку `migration` (Git → Manage Branches → `origin/migration` → Checkout).
+2. Откройте `aspnetcore/Gts.Api.sln`.
+3. Строка подключения — через секреты, не в файлах: ПКМ по проекту **Gts.Api → Manage User Secrets**:
+   ```json
+   {
+     "ConnectionStrings": {
+       "Database": "Data Source=localhost;Initial Catalog=GTS;User ID=...;Password=..."
+     }
+   }
+   ```
+   Это та же строка, что была в `source/Web.config`. Если в ней нет параметра `Encrypt`, приложение
+   добавит `Encrypt=False` — как вёл себя старый драйвер. Для SMS добавьте туда же
+   `"AppSettings": { "SmscLogin": "...", "SmscPassword": "..." }`.
+4. **F5.** Откроется `http://localhost:5080/` — тот же `index.html`, что на боевом сайте.
+   Профиль «Gts.Api (Swagger)» открывает Swagger для новых адресов `/api/v1/*`.
 
-## Запуск
-См. раздел 8 в [MIGRATION.md](./MIGRATION.md).
+Сайт берёт страницы, скрипты и фото прямо из папки `source/` репозитория (настройка `Gts:LegacyWebRoot`
+в `appsettings.json`). Загруженные при тестировании фото попадут в `source/Photos` — не коммитьте их.
 
-## Безопасность
-Строка подключения и любые секреты — только через переменные окружения / User Secrets.
-В репозитории секретов нет. Отдельно необходимо сменить засвеченные в legacy пароли
-(`sa` в `source/Web.config`, SMS-шлюз в `source/App_Code/smsc_api.cs`).
+## Что проверить
+
+| Сценарий | Где | Что затрагивает |
+|---|---|---|
+| Вход по телефону и паролю | `index.html` | `System.asmx/Logon`, `Authorization` |
+| Рабочий стол, отчёты, сводные | `desktop/app.html` | `Desktop`, `Report`, `UI`, `Framework.asmx` |
+| Карточка визита, фото визита | `desktop/visit.js`, `desktop/js/edit_visit.js` | `Visit.asmx`, `APP.asmx/DeletePhotoVisit` |
+| Загрузка фото / аватара / звука / Excel | формы сайта | `upload.aspx`, `uploadUser.aspx`, `soundUploader.aspx`, `uploadExcel.aspx` |
+| Уведомления о сообщениях | открытая страница сайта | `Refresh.aspx` (поток событий) |
+| Архив фото в zip | раздел фотоотчётов | `Archive.asmx` |
+| Мобильное приложение | в настройках указать адрес `http://<IP компьютера>:5080` | `App.asmx`, `AppToken.asmx`, `System.asmx` |
+
+Список методов любой службы: откройте в браузере `http://localhost:5080/Services/App.asmx`.
+Ошибки старого кода при работе с БД пишутся, как и раньше, в `source/logs/errors.log`;
+ошибки самого приложения — в окно Output (Debug) в VS.
+
+Подробнее об устройстве, отличиях и ограничениях — [MIGRATION.md](./MIGRATION.md).
