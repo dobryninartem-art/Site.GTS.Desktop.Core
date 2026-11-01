@@ -1,0 +1,15 @@
+# .NET build output
+bin/
+obj/
+out/
+*.user
+
+# Rider/VS
+.vs/
+.idea/
+
+# Секреты и локальная конфигурация — НИКОГДА не коммитить
+appsettings.*.local.json
+secrets.json
+*.pfx
+*.key
