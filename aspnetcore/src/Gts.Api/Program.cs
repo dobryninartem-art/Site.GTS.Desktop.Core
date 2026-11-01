@@ -19,6 +19,7 @@ builder.Services.AddScoped<IDatabase, SqlDatabase>();
 // Бизнес-сервисы (порты *Business).
 builder.Services.AddScoped<SystemService>();
 builder.Services.AddScoped<AppService>();
+builder.Services.AddScoped<VisitService>();
 
 // OpenAPI/Swagger — то, чего не было у ASMX.
 builder.Services.AddEndpointsApiExplorer();
