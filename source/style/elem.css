@@ -1,0 +1,307 @@
+﻿.text-user .webix_img_btn_abs {
+  font-size: 12px !important;
+}
+
+div[view_id="textMessage"] {
+  padding: 0 !important;
+  margin: 1px 0 0 0 !important;  
+  border: 0;
+}
+
+span.webix_icon {
+  color: #ffffff !important;
+}
+  
+.text-toolbar, .text-user {
+  background-color: #4e82bc; 
+  color: #ffffff;
+  line-height: 28px;  
+}
+
+.text-user .webix_el_box {
+    background-color: #4e82bc !important; 
+}
+
+.text-toolbar .webix_template {
+  font-size: 14px !important;
+  line-height: 1.1; 
+}
+
+.toolbar-search  {
+  background-color: #ffffff !important;
+  color: #4d4d4d;
+}
+
+.search-button span.webix_icon {
+  color: #4e82bc !important;
+}
+
+.search-text  {
+  background-color: #4e82bc; 
+  color: #ffffff;
+  
+}
+
+.search-text input{
+  color: #8f7575;  
+}
+
+.search-text .webix_el_box {
+  padding: 0;
+  color: #7575a8;
+}
+
+.search-text .webix_el_box span.webix_input_icon {
+  display: none;
+}
+
+.menu-user-line {
+  background-image: url('../i/fon.jpg');  
+}
+
+.text-user  {
+  font-size: 12px !important;
+  line-height: 1.1;  
+  background: transparent;
+}
+
+.text-user .webix_template {
+  font-size: 14px !important;
+  line-height: 1.1;  
+}
+
+.input-text-field-form input {
+  border-bottom: 1px dotted #4e82bc !important;  
+  
+}
+
+.menu-item {
+  font-size: 12px !important;
+  color: #685656;  
+}
+
+.menu-item i {
+  color: #4e82bc;
+}
+
+.menu-item-text {
+  padding-left: 6px;
+  font-size: 16px !important;
+  line-height: 30px;
+}
+
+div[view_id="menulist"] div[webix_l_id="20"], 
+div[view_id="menulist"] div[webix_l_id="41"], 
+div[view_id="menulist"] div[webix_l_id="42"], 
+div[view_id="menulist"] div[webix_l_id="43"], 
+div[view_id="menulist"] div[webix_l_id="44"], 
+div[view_id="menulist"] div[webix_l_id="45"], 
+div[view_id="menulist"] div[webix_l_id="47"],
+div[view_id="menulist"] div[webix_l_id="48"],
+div[view_id="menulist"] div[webix_l_id="60"],
+div[view_id="menulist"] div[webix_l_id="91"],
+div[webix_l_id="1010"], div[webix_l_id="1022"], div[webix_l_id="1023"], div[webix_l_id="1040"], div[webix_l_id="1041"], div[webix_l_id="1042"], div[webix_l_id="1044"], div[webix_l_id="1050"], 
+div[webix_l_id="1051"], div[webix_l_id="1053"], div[webix_l_id="1055"], div[webix_l_id="1080"], div[webix_l_id="1085"]
+ {
+  border: 0 !important;
+}
+
+div[view_id="point-menu"] div[webix_l_id="1"],
+div[view_id="point-menu"] div[webix_l_id="2"] {
+  font-weight: bold;
+} 
+
+.list-point_item {
+  font-size: 14px !important;
+  color: black;  
+  background-color: white;   
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.list-point-item .alert {
+  color: red;
+  margin-right: 6px;
+  display: inline-block;
+  line-height: 1.2;
+  vertical-align: middle;
+}
+
+.list-point-item .blue {
+  color: #4e82bc;
+  
+}
+
+.list-point-item .gray {
+  color: #cccccc;
+}
+
+.list-point-item-text {
+  padding-left: 6px;
+  font-size: 18px !important;
+  line-height: 1.1;
+  color: #363636 !important;
+}
+
+.list-point-item-text-small {
+  padding-left: 0px;
+  font-size: 14px !important;
+  line-height: 0.8;
+  color: #363636 !important;
+}
+
+.list-point-item-description {
+  color: #8f7575;  
+  padding-left: 6px;
+  padding-top: 2px;
+  font-size: 16px !important;
+  line-height: 1.1;
+}
+
+.menu-item-description {
+  color: #8f7575;  
+  padding-left: 6px;
+  padding-top: 0;
+  font-size: 14px !important;
+  line-height: 1.0;
+}
+
+.list-point-item .webix_badge {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+.borned {
+  color: #8f7575;
+  font-size: 12px !important;
+  line-height: 14px;
+}
+
+.list-point-item-usertext {
+  color: black;  
+  padding-left: 6px;
+  padding-top: 6px;
+  font-size: 14px !important;
+  line-height: 1.1;
+}
+
+.list-point-item-usertext-small {
+  color: black;  
+  padding-left: 6px;
+  padding-top: 6px;
+  /*font-weight: bold;*/
+  font-size: 14px !important;
+  line-height: 1.1;
+}
+
+.list-message-text {
+  color: #685656;
+  padding-left: 6px;
+  font-size: 18px !important;
+  line-height: 1.1;
+}
+
+.list-message-acceptor {
+  color: #8f7575;  
+  padding-left: 6px;
+  padding-top: 2px;
+  font-size: 12px !important;
+  line-height: 1.1;
+}
+
+div[view_id="messageLists"] .webix_list_item {
+  border: 0;
+}
+
+div.input input {
+  border: 0 !important;
+  border-bottom: 1px dotted #aaa !important;
+  border-radius: 0 !important;
+  -webkit-border-radius: 0 !important;
+  -moz-border-radius: 0 !important;
+  -html-border-radius: 0 !important;
+  background: #ffffff !important;
+  outline: none !important;
+  /*height: 30px !important;*/
+  color: #363636 !important;
+  font-size: 16px !important;
+}
+  
+.face{
+   width: 60px; height: 60px; 
+   border: 0; 
+   border-radius: 30px; 
+   -webkit-border-radius: 30px; 
+   -moz-border-radius: 30px; 
+   margin-top: 4px;
+}
+
+.facebig {
+   width: 150px; 
+   height: 150px; 
+   border: 0; 
+   border-radius: 75px; 
+   -webkit-border-radius: 75px; 
+   -moz-border-radius: 75px;    
+}
+
+.chatface {
+    width: 70px; 
+    float: left; 
+    min-height: 70px; 
+    height: 100%;    
+}
+
+.messagephoto {
+   width: 220px; 
+   height: 220px; 
+   padding-top: 4px;
+   border: 0; 
+   border-radius: 20px; 
+   -webkit-border-radius: 20px; 
+   -moz-border-radius: 20px;     
+}
+
+.report-photo {
+   width: 56px; 
+   height: 56px; 
+   padding-top: 4px;
+   border: 0; 
+   border-radius: 4px; 
+   -webkit-border-radius: 4px; 
+   -moz-border-radius: 4px;     
+}
+
+.photofull {
+    width: auto;
+    height: 100vh;
+}
+
+.reportphoto {
+   width: 300px; 
+   height: 300px; 
+   border: 0; 
+   float: left;
+   border-radius: 20px; 
+   -webkit-border-radius: 20px; 
+   -moz-border-radius: 20px;     
+   margin: 5px 10px 5px 5px; 
+}
+
+.highlight{
+  font-weight: bold;
+}
+
+.passive {
+  color: gray;
+}
+
+.active {
+  color: black;
+}
+
+.alert {
+  color: red;
+  font-weight: bold;
+}
+

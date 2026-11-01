@@ -1,0 +1,218 @@
+/* фото */
+.face-button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 22px;
+  -webkit-border-radius: 22px;
+  -moz-border-radius: 22px;
+  margin: 2px;
+  padding: 0;
+  background-size: 44px 44px;
+}
+
+div[view_id="user-photo"] > div {
+  margin: 0;
+  padding: 0;
+}
+
+.button-style {
+  margin: 0;
+  padding: 0;
+}
+
+.menuface {
+  width: 40px;
+  height: 40px;
+  border: 0;
+}
+
+textarea {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.facebig {
+  width: 300px;
+  height: 300px;
+  border: 0;
+  border-radius: 150px;
+  -webkit-border-radius: 150px;
+  -moz-border-radius: 150px;
+}
+
+.messagephoto {
+  width: 220px;
+  height: 220px;
+  border: 0;
+  border-radius: 20px;
+  -webkit-border-radius: 20px;
+  -moz-border-radius: 20px;
+}
+
+.menu-item, .menu-item-report, .menu-item-art {
+  min-height: 50px;
+  border-bottom: 1px dotted #aaa !important;
+  padding: 0;
+}
+
+.menu-item-report {
+  min-height: 42px;
+}
+
+.menu-item-art {
+  border-bottom: 0;
+}
+
+.menu-photo {
+  width: 50px;
+  float: left;
+  min-height: 50px;
+  height: 100%;
+}
+
+.menu-text {
+  left: 70px;
+  right: 50px;
+  line-height: 1.1;
+  padding-top: 6px;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.menu-text-report {
+  left: 50px;
+  right: 50px;
+  line-height: 1.1;
+  padding-top: 16px;
+  font-weight: bold;
+}
+
+
+/* -- элементы чата ------- */
+.artitem {
+  min-height: 34px;
+  padding-left: 0px;
+}
+
+.artitem-group {
+  min-height: 40px;
+  color: black;
+  font-size: 20px;
+  font-weight: bold;
+  padding-left: 0px;
+}
+
+.chatborned {
+  width: 100px;
+  right: 0;
+  float: right;
+  text-align: right;
+  color: #aaa;
+  font-size: 12px;
+  line-height: 1.1;
+  padding-top: 0;
+}
+
+.chatusername, .tasktext {
+  font-size: 20px;
+  display: block;
+  font-weight: bold;
+  padding-bottom: 5px;
+  line-height: 1.1;
+}
+
+.tasktext {
+  font-size: 18px;
+}
+
+.messageusername {
+  font-size: 14px;
+  display: block;
+  font-weight: bold;
+  padding-bottom: 5px;
+  line-height: 1.1;
+  text-align: right;
+  padding-top: 5px;
+}
+
+.topicitem {
+  border-bottom: 1px dotted #aaa !important;  
+  padding: 4px 0;
+}
+
+/* -- регистраци€\вход -- */
+.signin>div {
+  font-size: 24px !important;
+  font-weight: bold !important;
+  text-align: center;
+}
+
+.signin-welcome > div {
+  font-size: 17px !important;
+  /*font-weight: bold !important;*/
+  text-align: center;
+}
+
+.code {
+  font-size: 24px;
+  text-align: right;
+}
+
+.country {
+  font-size: 24px;
+  border-bottom: 1px dotted #aaa !important;
+  color: black;
+  display: table !important;
+}
+
+.text {
+  line-height: 1.1;
+}
+
+.textPass {
+  line-height: 0.8;
+  /*color: blue;*/
+  text-decoration: underline;
+  padding-left: 10px;
+  cursor: pointer;
+}
+
+.imageLink {
+  cursor: pointer;
+}
+
+.toolBarCompanies {
+  background: #0d47a1;
+}
+
+/* €чейка pivot */
+.multiline-pivot {
+  line-height: 14px !important;
+  margin: 0 !important;
+  padding: 0px 2px !important;
+  font-size: 12px !important
+}
+
+
+.icon_btn .webix_icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: left;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+
+.icon_btn_delete .webix_icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: left;
+  vertical-align: middle;
+  margin-right: 2px;
+  color: red !important;
+}
+
+.webix_popup {
+  z-index: 1000 !important;
+}

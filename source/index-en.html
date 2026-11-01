@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ru" manifest="cache.manifest">
+<head>
+  <title>gts.online. SFA solution for shop employees automation</title>
+  <meta name="description" content="The software product is designed for FMCG companies to automate employees in retail outlets. Data collection and operational control in retail outlets" />
+  <meta name="author" content="https://gts.online" />
+
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+  <meta http-equiv="Cache-Control" content="no-cache" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+
+  <link href="webix/webix.css" rel="stylesheet" />
+  <link href="style/elem.css" rel="stylesheet" />
+  <link href="style/style.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css" />
+
+  <script src="jquery/jquery.min.js" charset="utf-8"></script>
+  <script src="jquery/jquery.maskedinput.min.js" charset="utf-8"></script>
+  <script src="js/coutries.js" charset="utf-8"></script>
+
+  <script type="text/javascript" src="js/camera.js" charset="utf-8"></script>
+
+  <style type="text/css">
+      input {
+        font-size: 22px !important;
+        color: #333333 !important;
+      }
+
+      .webix_secondary, .webix_button, .webix_button:hover {
+        color: #FFFFFF !important;
+        background-color: #0d47a1 !important;
+      }
+
+      .webix_icon_btn {
+        color: #ffffff !important;
+        background-color: #0d47a1 !important;
+      }
+
+      /*.webix_layout_form .webix_control {
+      border-top: 0px !important;
+    }
+
+    .webix_layout_form {
+      color: #FFFFFF !important;
+      background: #FFFFFF !important;
+    }
+
+    .webixtype_base {
+      color: #FFFFFF !important;
+      background: #0d47a1 !important;
+    }
+
+    .webix_list_item {
+      background: #FFFFFF !important;
+    }
+
+    .webix_progress_icon .webix_progress_state {
+      color: #0d47a1 !important;
+    }*/
+  </style>
+
+</head>
+<body>
+  <div id="item_country" style="display: none">
+    <div class='list-point-item'>
+      {common.itemPhoto()}
+      <div class='list-point-item-text' style="line-height: 34px;">#NameRus#</div>
+      <div class='list-point-item-description'>#Code#</div>
+    </div>
+  </div>
+
+  <div id="item_company" style="display: none">
+    <div class='list-point-item'>
+      <div class='list-point-item-text' style="line-height: 34px;">#CompanyName#</div>
+      <div class='list-point-item-description'>#LegalName#</div>
+    </div>
+  </div>
+
+  <script src="webix/webix.js" charset="utf-8"></script>
+  <!--<script src="webix/skin.js"></script>-->
+
+  <script src="js/data.js" charset="utf-8"></script>
+  <script src="js/script.js" charset="utf-8"></script>
+
+  <script type="text/javascript" charset="utf-8">
+    $.mask.definitions['9'] = '';
+    $.mask.definitions['d'] = '[0-9]';
+
+    country = localStorage.getItem('CountryID');
+    countryName = localStorage.getItem('CountryName');
+    mask = '+7(ddd)ddd-dd-dd';
+
+    if (mask == 'null') mask = '+';
+    if (countryName == 'null') countryName = 'Choose the country';
+    if (countryName == null) countryName = 'Choose the country';
+
+    author = localStorage.getItem('Author');
+    username = localStorage.getItem('UserName');
+    rolename = localStorage.getItem('RoleName');
+    phone = localStorage.getItem('Phone');
+    if (phone == 'null') phone = '';
+    if (phone == null) phone = '';
+
+    if (author != null) {
+      top.location.href = 'desktop/app2.html';
+    }
+
+    // список стран
+    var countries = {
+      id: "countries",
+      rows: [
+        {
+          view: "toolbar", 
+          elements: [
+            { view: "button", type: "icon", icon: "arrow-left", label: "Выберите страну", click: "$$('screenList').show()" }            
+          ]
+        },
+        {
+          view: "list", id: 'countryList', template: "html->item_country", data: countrydataEng, type: { height: "auto" },
+          on: {
+            onItemClick: function (id) {
+              var item = this.getItem(id);
+          
+              //$$('country').define('label', item.NameRus); $$('country').refresh();
+              $$('country').setValue(item.NameRus);
+          
+              localStorage.setItem('CountryID', this.getItem(id).ID);
+              localStorage.setItem('CountryName', this.getItem(id).NameRus);
+              localStorage.setItem('Mask', this.getItem(id).Mask);              
+
+              country = localStorage.getItem('CountryID');
+              countryName = localStorage.getItem('CountryName');
+              mask = localStorage.getItem('Mask');
+              
+              $$('screenList').show();
+              $$('phone').focus();
+
+              $("input[type='tel']").mask(item.Mask, {
+                completed: function () {
+                  setCode();
+                }
+              });
+
+              
+              $('div.webix_el_box').find('input:first').focus();
+            }
+          }
+        }
+      ]
+    };
+
+    // список компаний, если телефон зарегистрирован в нескольких компаниях
+    var companies = {
+      id: "companies",
+      rows: [
+        {
+          view: "toolbar", css: "toolBarCompanies",
+          elements: [
+            { view: "button", type: "icon", icon: "fas fa-arrow-left", label: "Select a company", width: 200, height: 50, click: "$$('screenList').show()", align: "left" },
+          ]
+        },
+        {
+          view: "list", id: 'company', template: "html->item_company", type: { height: "auto" },
+          on: {
+            onItemClick: function (id) {
+              var item = $$(this).getItem(id);
+
+              localStorage.setItem('Author', item.ID);
+              localStorage.setItem('UserName', item.UserName);
+              localStorage.setItem('RoleName', item.RoleName);
+              localStorage.setItem('Photo', item.Photo);
+              localStorage.setItem('CompanyID', item.CompanyID);
+              localStorage.setItem('CompanyName', item.CompanyName);
+              localStorage.setItem('IsRoute', item.IsRoute);
+              localStorage.setItem('IsPoint', item.IsPoint);
+              localStorage.setItem('IsUser', item.IsUser);
+              localStorage.setItem('IsTask', item.IsTask);
+              localStorage.setItem('Magic', item.Magic);
+              localStorage.setItem('Lang', 'ENG');
+              localStorage.setItem('Phone', $$('phonefull').config.label);
+              localStorage.setItem('Email', item.Email);
+
+              setTimeZone();
+              desktopLogon(item.ID, item.CompanyID);
+            }
+          }
+        }
+      ]
+    };
+
+    // экран ввода телефона
+    var list = {
+      id: "screenList", view: "form",
+      elements: [
+        {
+          rows: [
+            {
+              cols: [
+                { view: "label", css: 'imageLink', label: "<img src='i/ru_flag.png' style='height:80%'>", width: 50, type: "clean", click: "top.location.href='index.html'" },
+                { view: "label", css: 'textPass', label: "Рус", type: "clean", click: "top.location.href='index.html'" },
+                { view: "label", css: 'textPass', label: "Information", height: 30, width: 120, type: "clean", click: "top.location.href='http://about.gts.online/'" },
+              ]
+            },
+            { height: 10 },
+            { cols: [{}, { view: "template", template: '<img src="i/gts_193.png"/>', width: 193, height: 193, type: "clean" }, {}] }, {},
+            { height: 10 },
+            { view: "template", borderless: true, template: "gts.online", height: 48, css: { 'text-align': 'center', 'color': '#333333', 'font-size': '36px' } },
+            { view: "template", borderless: true, template: "Login to the system", height: 48, css: { 'text-align': 'center', 'color': '#333333', 'font-size': '24px' } },
+            {},
+            {
+              cols: [{}, {
+                view: "fieldset", label: "Login: ", body: {
+                  rows: [
+                    //{
+                    //  view: "text", id: 'country', height: 30, placeholder: "Выберите страну", value: countryName,
+                    //  click: function () {
+                    //    $$('countries').show();
+                    //    return false;
+                    //  }
+                    //},
+                    { view: "text", id: 'phone', type: "tel", value: phone, placeholder: "+7(___)___-__-__", inputAlign: "center", width: 250 }
+                  ]
+                }
+              }, {}]
+            },
+            {},
+            {
+              cols: [{}, { view: "button", label: "Next", click: "setCode()", css: { 'text-align': 'center' }, width: 200 }, {}]
+            },
+            {},
+            {
+              cols: [
+                { view: "label", css: 'imageLink', label: "<img src='i/google-play-ru.png' style='height:100%'>", width: 120, type: "clean", click: "top.location.href=appLinkAndroid" },
+                { view: "label", css: 'imageLink', label: "<img src='i/app-store-ru.png' style='height:100%'>", width: 120, type: "clean", click: "top.location.href=appLinkIOS" },
+              ]
+            }
+          ]
+        }
+      ]
+    };
+
+    // экран ввода пароля
+    var listcode = {
+      id: "screenPass", view: "form",
+      elements: [
+        {
+          rows: [
+            { height: 10 },
+            { cols: [{}, { view: "template", template: '<img src="i/gts_193.png"/>', width: 193, height: 193, type: "clean" }, {}] }, {},
+            { height: 10 },
+            { view: "template", borderless: true, template: "gts.online", height: 48, css: { 'text-align': 'center', 'color': '#333333', 'font-size': '36px' } },
+            { view: "template", borderless: true, template: "Login to the system", height: 48, css: { 'text-align': 'center', 'color': '#333333', 'font-size': '24px' } },
+            {},
+            {
+              cols: [{}, { view: "template", template: "Enter password", id: 'welcome', width: 250, type: "clean", css: 'signin-welcome' }, {}]
+            },
+            {
+              cols: [{}, {
+                view: "fieldset", label: "Login: ", body: {
+                  rows: [
+                    { view: "label", css: 'signin', id: 'phonefull', type: "clean" },
+                    { view: "text", id: 'pass', type: 'password', value: '', placeholder: "enter password", inputAlign: "center", width: 250 }
+                  ]
+                }
+              }, {}]
+            },
+            {},
+            {
+              cols: [{}, {
+                rows: [
+                  { view: "button", label: "Next", click: "logon", css: { 'text-align': 'center' }, width: 200 },
+                  { height: 10 },
+                  { view: "button", label: "Back", click: "$$('screenList').show()", css: { 'text-align': 'center' }, width: 200 }]
+              }, {}]
+            },
+            {},
+            { view: "label", css: 'textPass', label: "Forgot your password?", height: 30, type: "clean", click: "sendSMS()" }
+          ]
+        }
+      ]
+    };
+
+    // экран cоздания пароля
+    var listPassNew = {
+      id: "screenPassNew", view: "form",
+      elements: [
+        {
+          rows: [
+            { height: 10 },
+            { cols: [{}, { view: "template", template: '<img src="i/gts_193.png"/>', width: 193, height: 193, type: "clean" }, {}] }, {},
+            { height: 10 },
+            { view: "template", borderless: true, template: "gts.online", height: 48, css: { 'text-align': 'center', 'color': '#333333', 'font-size': '36px' } },
+            { view: "template", borderless: true, template: "Login to the system", height: 48, css: { 'text-align': 'center', 'color': '#333333', 'font-size': '24px' } },
+            {},
+            {
+              cols: [{}, { view: "template", template: "Create a password to log in", id: 'welcome1', width: 250, type: "clean", css: 'signin-welcome' }, {}]
+            },
+            { height: 10 },
+            {
+              cols: [{}, {
+                view: "fieldset", label: "Login: ", body: {
+                  rows: [
+                    { view: "label", css: 'signin', id: 'phonefull1', type: "clean" },
+                    { view: "text", id: 'pass1', type: 'password', value: '', placeholder: "Enter password", inputAlign: "center", width: 250 },
+                    { view: "text", id: 'pass2', type: 'password', value: '', placeholder: "Confirm password", inputAlign: "center", width: 250 },
+                  ]
+                }
+              }, {}]
+            },
+            {},
+            {
+              cols: [{}, {
+                rows: [
+                  { view: "button", label: "Next", click: "setUserPass()", css: { 'text-align': 'center' }, width: 200 },
+                  { height: 10 },
+                  { view: "button", label: "Back", click: "$$('screenList').show();", css: { 'text-align': 'center' }, width: 200 }]
+              }, {}]
+            },
+            {}
+          ]
+        }
+      ]
+    };
+
+    webix.ready(function () {
+      webix.ui.fullScreen();
+
+      webix.ui({
+        id: 'navigation',
+        rows: [
+          { height: 20, id: "statusbar", hidden: true },
+          { cells: [list, listcode, listPassNew, companies, countries] }          
+        ]
+      });
+
+      webix.UIManager.addHotKey("enter", function () {
+        if ($$('pass').getValue() == '')
+          setCode();
+        else logon();
+      });
+
+           
+      webix.extend($$("navigation"), webix.ProgressBar);
+
+      $("input[type='tel']").mask(mask, {
+        completed: function () {
+          setCode();
+        }
+      });
+      //$('div.webix_el_box').find('input:first').focus();     
+      
+      $('label.webix_inp_label').css('width', 'auto');
+    });   
+
+    function setCode() {
+      if ($$('phone').getValue() == '') webix.message({ type: "error", text: "Enter login", expire: 1000 });
+      else {
+        $$('phonefull').define('label', $$('phone').getValue());
+        $$('phonefull').refresh();
+
+        $$('phonefull1').define('label', $$('phone').getValue());
+        $$('phonefull1').refresh();
+
+        $("input[type='tel']").mask(mask).attr("pattern", "[0­9]*");
+
+        const phone = $$('phonefull').config.label;
+        if (localStorage.getItem('SystemLang') === 'DM' && !phone.startsWith("+7(441)")) {
+          webix.message({ type: "error", text: indexTextError2, expire: 1000 });
+          return;
+        }
+        else if (localStorage.getItem('SystemLang') === 'RU' && phone.startsWith("+7(441)")) {
+          webix.message({ type: "error", text: indexTextError2, expire: 1000 });
+          return;
+        }
+
+        showProgress("navigation");
+        
+        $.ajax({
+          url: URLname + '/Services/System.asmx/UserExist',
+          data: JSON.stringify({ 'Phone': $$('phonefull').config.label }),
+          success: function (data) {
+            var info = JSON.parse(data.d)[0];
+
+            $$("navigation").hideProgress();
+
+            if (info == undefined) {
+                webix.message({ type: "error", text: "Login " + $$('phonefull').config.label + " not registered.", expire: 3000 });
+              return;
+            }
+            else {
+              if (info.Magic == '') {
+                $$('welcome').define('template', 'Hello, ' + info.UserNameFull + '!');
+                $$('welcome').refresh();                
+
+                $$('pass').focus();
+                $$('screenPass').show();
+              }
+              else {
+                $$('welcome1').define('template', 'Hello, ' + info.UserNameFull + '!<br/>Create a password to log in.');
+                $$('welcome1').refresh();
+
+                $$('pass1').focus();
+
+                $$('screenPassNew').show();
+              }
+            }
+            
+          },
+          error: function (xhr, ajaxOptions, thrownError) {
+            //alert(xhr.responseText);          
+
+            webix.message({ type: "error", text: "There is no connection to the server. Try again", expire: 1000 });
+          },
+          complete: function () {
+            $$("navigation").hideProgress();
+          }
+        });        
+      }
+    };
+
+    function logon() {
+      if ($$('pass').getValue() == '') {
+        webix.message({ type: "error", text: "Enter password!", expire: 1000 });
+
+        return;
+      }      
+
+      showProgress("navigation");
+
+      $.ajax({
+        url: URLname + '/Services/System.asmx/Logon',
+        data: JSON.stringify({ 'Phone': $$('phonefull').config.label, 'Pass': $$('pass').getValue() }),
+        success: function (data) {
+          var info = JSON.parse(data.d);
+
+          $$("navigation").hideProgress();
+
+          if (info.length == 0) {
+            webix.message({ type: "error", text: "Incorrect password", expire: 1000 });
+            return;
+          } else {
+            if (info.length == 1) {
+
+              localStorage.setItem('Author', info[0].ID);
+              localStorage.setItem('UserName', info[0].UserName);
+              localStorage.setItem('RoleName', info[0].RoleName);
+              localStorage.setItem('Photo', info[0].Photo);
+              localStorage.setItem('CompanyID', info[0].CompanyID);
+              localStorage.setItem('CompanyName', info[0].CompanyName);
+              localStorage.setItem('IsRoute', info[0].IsRoute);
+              localStorage.setItem('IsPoint', info[0].IsPoint);
+              localStorage.setItem('IsUser', info[0].IsUser);
+              localStorage.setItem('IsTask', info[0].IsTask);
+              localStorage.setItem('Magic', info[0].Magic);
+              localStorage.setItem('Lang', 'ENG');
+              localStorage.setItem('Phone', $$('phonefull').config.label);
+              localStorage.setItem('BaseName', info[0].BaseName);
+              localStorage.setItem('Email', info[0].Email);
+
+              setTimeZone();
+              desktopLogon(info[0].ID, info[0].CompanyID);
+              
+            } else {
+              $$('company').clearAll();
+              $$('company').parse(info);
+
+              $$('companies').show();
+            }
+          }
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+          $$("navigation").hideProgress();
+
+          webix.message({ type: "error", text: "There is no connection to the server. Try again", expire: 1000 });
+        }
+      });
+    }
+
+    function desktopLogon(userID, companyID) {
+      if ($$('phone').getValue() == '' || $$('phone').getValue() == null) return;
+      if ($$('pass').getValue() == '' || $$('pass').getValue() == null) return;
+      if (userID == null || userID == '') return;
+      if (companyID == null || companyID == '') return;
+
+      var magic = 'gts.online: pc';
+      if (isMobileDevice)
+        magic = 'gts.online: mobile'
+
+      showProgress("navigation");
+
+      $.ajax({
+        url: URLname + '/Services/System.asmx/Authorization',
+        data: JSON.stringify({
+          'Phone': $$('phonefull').config.label, 'UserID': userID, 'Company': companyID, 'Pass': $$('pass').getValue(), 'Magic': magic
+        }),
+        success: function (data) {
+          var info = JSON.parse(data.d);
+          $$("navigation").hideProgress();
+
+          if (info.length == 0) return;
+          else {
+            localStorage.setItem('desktopKey', info[0].desktopKey);
+            localStorage.setItem('googleKey', info[0].googleKey);
+
+            top.location.href = 'desktop/app2.html';
+          }
+        }, error: function (xhr, ajaxOptions, thrownError) {
+          $$("navigation").hideProgress();
+          webix.message({ type: "error", text: "No internet connection. Try again later", expire: 1000 });
+        }
+      });
+    }
+
+    function sendSMS() {
+      webix.alert({
+        title: "Password recovery", ok: "Ok", text: "Please contact your supervisor or system administrator to reset your password"
+      });     
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,383 @@
+﻿/* кастомизация webix.css */
+
+/* общие настройки */
+.webix_view {
+  letter-spacing: -0.6px;
+  font-family: "Segoe UI",SegoeUI,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  text-size-adjust: 100%;
+  color: #000; 
+}
+
+.webix_dtable .webix_ss_body .webix_column > div,
+.webix_dtable .webix_ss_body .webix_table_cell {  
+  border-left-color: transparent;
+  border-right: 1px solid #edeff0;  
+}
+
+.webix_ss_header,
+.webix_hcolumn,
+.webix_ss_vscroll_header,
+.webix_dd_drag_column,
+.webix_hs_left,
+.webix_hs_center,
+.webix_hs_right {
+  background: transparent;
+  font-size: 12px;
+}
+
+
+.webix_column > div,
+.webix_table_cell {
+  padding: 0 4px 0 4px;
+}
+
+.webix_hcell {
+  padding: 0 2px 0 6px;
+}
+
+.webix_view .webix_pager_item {
+  background: transparent;
+  color: #475466;
+}
+
+.webix_view .webix_pager_item:hover {
+  background: transparent;
+}
+
+.webix_view .webix_pager_item:focus {
+  background: transparent;
+}
+
+.webix_dataview_item {
+  padding: 2px 0px;
+}
+
+.webix_layout_accordion.webix_dark .webix_accordionitem_header {
+  background-color: #f5f5f7;
+  color: #000;
+}
+
+.webix_layout_accordion.webix_dark .webix_accordionitem_header .webix_accordionitem_button {
+  color: #000;
+}
+
+.webix_layout_accordion.webix_dark .webix_accordionitem_header.collapsed {
+  background-color: #f5f5f7;
+  color: #000;
+}
+
+.webix_layout_accordion.webix_dark .webix_accordionitem_header.collapsed .webix_accordionitem_button {
+  color: #000;
+}
+
+.webix_layout_accordion.webix_dark .webix_accordionitem_header:hover,
+.webix_layout_accordion.webix_dark .webix_accordionitem_header:focus {
+  background-color: #f5f5f7;
+}
+
+.webix_layout_accordion.webix_dark .webix_accordionitem.horizontal.collapsed .webix_accordionitem_header:hover,
+.webix_layout_accordion.webix_dark .webix_accordionitem.collapsed .webix_accordionitem_header:hover,
+.webix_layout_accordion.webix_dark .webix_accordionitem.horizontal.collapsed .webix_accordionitem_header:focus,
+.webix_layout_accordion.webix_dark .webix_accordionitem.collapsed .webix_accordionitem_header:focus {
+  background-color: #f5f5f7;
+}
+
+.webix_accordionitem .webix_accordionitem_header .webix_accordionitem_button {
+  color: #000; 
+}
+
+.webix_accordionitem .webix_accordionitem_header .webix_accordionitem_label .webix_icon {
+  color: #0d47a1;
+}
+
+.webix_accordionitem.collapsed .webix_accordionitem_header .webix_accordionitem_label .webix_icon {
+  color: #0d47a1;
+}
+
+.webix_menu.webix_view .webix_icon {
+  color: #0d47a1;
+}
+
+/* ------------------ Кнопки --------------------- */
+
+.webix_secondary .webix_button {
+  background: #f4f5f9;
+  color: #000;
+}
+
+.webix_secondary .webix_button:hover {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:focus {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:active {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:hover {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:focus {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:active {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:hover {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:focus {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:active {
+  background-color: white;
+}
+
+.webix_secondary .webix_button .webix_icon,
+.webix_secondary .webix_button .webix_img_btn_text,
+.webix_secondary .webix_button .webix_icon_btn {
+  color: #0d47a1;
+}
+
+.webix_secondary .webix_pressed .webix_button {
+  background-color: white;
+}
+
+.webix_secondary .webix_button {
+  background: white;
+  color: #000;
+}
+
+.webix_secondary .webix_button:hover {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:focus {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:active {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:hover {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:focus {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:active {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:hover {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:focus {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:active {
+  background-color: white;
+}
+
+.webix_secondary .webix_button .webix_icon,
+.webix_secondary .webix_button .webix_img_btn_text,
+.webix_secondary .webix_button .webix_icon_btn {
+  color: #0d47a1;
+}
+
+.webix_secondary .webix_pressed .webix_button {
+  background-color: white;
+}
+
+.webix_secondary .webix_button {
+  background: white;
+  color: #000;
+}
+
+.webix_secondary .webix_button:hover {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:focus {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:active {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:hover {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:focus {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:active {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:hover {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:focus {
+  background-color: white;
+}
+
+.webix_secondary .webix_button:active {
+  background-color: white;
+}
+
+.webix_secondary .webix_button .webix_icon,
+.webix_secondary .webix_button .webix_img_btn_text,
+.webix_secondary .webix_button .webix_icon_btn {
+  color: #0d47a1;
+}
+
+.webix_secondary .webix_pressed .webix_button {
+  background-color: white;
+}
+/* ------------------ Кнопки --------------------- */
+
+.webix_pivot_toolbar .webix_template {
+  cursor: pointer;
+  padding-top: 0px;
+  padding-bottom: 0px;
+  color: #0d47a1;
+}
+
+.webix_accordionitem_header {
+  font-weight: 400;
+}
+
+.webix_pivot_settings .webix_template .webix_pivot_toolbar_icon {
+  color: #0d47a1;
+}
+
+.webix_primary .webix_button {
+  background: #0d47a1;
+}
+
+.webix_inp_static { 
+  padding-left: 0px;
+ 
+}
+
+.webix_progress_icon .webix_progress_state {
+  color: #0d47a1;
+}
+
+.webix_segment_0.webix_selected,
+.webix_segment_1.webix_selected,
+.webix_segment_N.webix_selected {
+  border-color: #0d47a1;
+  background-color: #0d47a1;
+}
+
+.webix_selected.webix_segment_0:hover,
+.webix_selected.webix_segment_1:hover,
+.webix_selected.webix_segment_N:hover {
+  background-color: #0d47a1;
+}
+
+.webix_segment_0,
+.webix_segment_1,
+.webix_segment_N {
+  border-color: white;
+  background-color: white;
+  color: #0d47a1;
+}
+
+.webix_segment_0,
+.webix_segment_1,
+.webix_segment_N {
+  -webkit-appearance: none;
+  background: white;
+  color: #0d47a1;
+}
+
+  .webix_segment_0:hover,
+  .webix_segment_1:hover,
+  .webix_segment_N:hover {
+    background-color: white;
+  }
+
+  .webix_segment_0:focus,
+  .webix_segment_1:focus,
+  .webix_segment_N:focus {
+    background-color: white;
+  }
+
+.webix_pivot_settings .webix_template:hover {
+  color: #0d47a1;
+  background-color: white;
+}
+
+.webix_view .webix_pager {
+  margin-top: 10px !important;
+  margin-left:10px !important ;
+}
+
+.webix_gage_info {
+  text-align: center;
+  font-size: 14px;
+  position: relative;
+  margin: 0 auto 10px auto;
+}
+
+.webix_layout_line,
+.webix_multiview,
+.webix_layout_clean,
+.webix_layout_accordion {
+  background: #fff/*transparent;*/
+}
+
+.webix_hcell {
+  white-space: nowrap;
+}
+
+.webix_segment_0, .webix_segment_1, .webix_segment_N {
+  width: auto !important;
+  padding: 0px 10px;
+}
+
+/* 1. Убираем фон и границы у самого контейнера DataView */
+.webix_dataview {
+  background-color: #ffffff !important; /* Или transparent */
+  border: none !important;
+}
+
+  /* 2. Убираем фон у внутренней области прокрутки */
+  .webix_dataview .webix_scroll_cont {
+    background-color: transparent !important;
+  }
+
+/* 3. Убираем рамки и отступы у каждого отдельного элемента списка */
+.webix_dataview_item {
+  border: none !important;
+  background-color: transparent !important;
+  padding: 0 !important; /* Убирает стандартные внутренние отступы Webix */
+  margin: 0 !important; /* Убирает внешние зазоры между плитками */
+}
+
+  /* 4. Убираем выделение элемента при клике (если оно мешает) */
+  .webix_dataview_item.webix_selected {
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }

@@ -1,0 +1,608 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+  <title>gts.online отчетность</title>
+
+  <meta name="description" content="gts.online - отчетность" />
+  <script src="../jquery/jquery.min.js" charset="utf-8"></script>
+
+  <script src="../webix/webix.min.js" charset="utf-8"></script>
+  <script src="../webix/theme/skin.js"></script>
+
+  <script src="../webix/powerarray.js" charset="utf-8"></script>
+  <script src="../webix/pivot.js" charset="utf-8"></script>
+  <script src="../webix/pivot-ex.js" charset="utf-8"></script>
+
+  <script src="../highcharts/highcharts.js"></script>
+  <script src="../highcharts/highcharts-more.js"></script>
+  <script src="../highcharts/solid-gauge.js"></script>
+  <script src="../highcharts/exporting.js"></script>
+  <script src="../highcharts/export-data.js"></script>
+  <script src="../highcharts/offline-exporting.js"></script>
+  <script src="../highcharts/accessibility.js"></script>
+  <script src="../highcharts/variable-pie.js"></script>
+
+  <script src="../jquery/ion.rangeSlider.js"></script>
+  <link href="../jquery/ion.rangeSlider.css" rel="stylesheet" />
+
+  <link href="../webix/theme/webix.css" rel="stylesheet" />
+  <!--<link href="../webix/webix-ex.css" rel="stylesheet" />-->
+  <link href="../style/style.css?v=2026.04.09" rel="stylesheet" />
+  <link href="../webix/pivot.css" rel="stylesheet" />
+
+
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css" />
+
+
+  <link href="app.css?v=2026.04.09" rel="stylesheet" />
+  <link href="css/main.css?v=2026.04.09" rel="stylesheet" />
+  <link href="css/webix-ex.css?v=2026.04.09" rel="stylesheet" />
+
+  <script src="../js/script.js?v=2026.04.09" charset="utf-8"></script>
+
+  <script src="js/ui.js?v=2026.04.09"></script>
+  <script src="js/datatable.js?v=2026.04.09" charset="utf-8"></script>
+  <script src="js/datatable_add.js?v=2026.04.09" charset="utf-8"></script>
+  <script src="js/datatable_add_rh.js" charset="utf-8"></script>
+  <script src="js/datatable_add_lt.js"></script>
+  <script src="js/datatable_add_demo.js"></script>
+  <script src="js/datatable_add_wb.js"></script>
+  <script src="js/datatable_add_ua.js"></script>
+  <script src="js/edit_visit.js?v=2026.04.09"></script>
+
+  <script src="js/dash_proc.js"></script>
+  <script src="js/dash_distipline2.js" charset="utf-8"></script>
+  <script src="js/dash_OSA.js"></script>
+  <script src="js/dash_OOS.js"></script>
+
+  <script src="js/spec_windows.js?v=2026.04.09" charset="utf-8"></script>
+  <script src="js/pivots.js"></script>
+  <script src="js/proc.js?v=2026.04.09" charset="utf-8"></script>
+</head>
+<body>
+  <script src="../webix/i18n/ru.js"></script>
+
+  <script type="text/javascript" charset="utf-8">
+    if (author == null) exit();
+
+    //фильтр для отчетов, работает поиск по нулю
+    webix.ui.datafilter.extendedTextFilter = webix.extend({
+      init: function (config) {
+        config.compare = function (a, b) {
+          return a != null && b != null && a.toString().toUpperCase().indexOf(b.toString().toUpperCase()) > -1;
+        }
+      }
+    }, webix.ui.datafilter.textFilter);
+
+    webix.i18n.parseFormat = "%d.%m.%Y";
+    webix.i18n.setLocale();
+
+    value: (isEng) ? webix.i18n.setLocale("en-US") : webix.i18n.setLocale("ru-RU");
+
+    webix.Date.startOnMonday = true;
+
+    webix.DataDriver.mycsv = webix.extend({
+      row: "\n",
+      cell: "\t"
+    }, webix.DataDriver.csv);
+
+
+    webix.ready(function () {
+      webix.ui.fullScreen();
+
+      // общая разметка главного экрана
+      webix.ui({
+        rows: [
+          toolbarHeader,
+          { view: "template", css: "portlet-header", id: "areaDesktop" },
+          { view: "resizer" },
+          iconFooter,
+          { view: "list", id: "menuUtility", hidden: true }, // скрытый список для хранения служебных окон
+        ]
+      });
+
+      // загрузчик из Эксель
+      webix.ui({
+        id: "excelUploader", view: "uploader", upload: "../uploadExcel.aspx", apiOnly: true, height: 1, type: 'clean',
+        on: {
+          onBeforeFileAdd: function (item) {
+            var type = item.type.toLowerCase();
+            if (type != "txt") {
+              webix.message({ type: "error", text: (isEng) ? 'Only .txt' : "Только файлы txt!", expire: 1000 });
+              return false;
+            }
+          },
+          onAfterFileAdd: function () {
+
+          },
+          onFileUpload: function (item) {
+            onExcelUpload(item);
+          },
+          onFileUploadError: function (item) {
+            onExcelUpload(item);
+          }
+        }
+      });
+
+      // загрузчик фотографий 
+      webix.ui({
+        view: "uploader", id: "photo_uploader", apiOnly: true, multiple: true, accept: "image/jpeg",
+        on: {
+          onBeforeFileAdd: function (file) {
+            if (this.files)
+              this.files.clearAll();
+
+            const params = this.config.formData; 
+            const reader = new FileReader();
+
+            reader.onload = (event) => {
+              // Извлекаем чистый Base64 (убираем префикс data:image/...)
+              const base64Data = event.target.result.split(',')[1];
+
+              if (params.Magic == "PHOTO") {
+                // сначала сохраняем запись в CHAT.PhotoReports
+                $.ajax({
+                  url: '../../Services/App.asmx/SetPhotoReport',
+                  data: JSON.stringify({
+                    'Point': params.Point, 'User': params.User, 'Company': params.Company, 'Category': params.Category, 'Brand': params.Brand,
+                    'Description': params.Description, 'GUID': params.GUID, 'Lat': params.Lat, 'Lon': params.Lon, Error: params.Error, 'Borned': params.Borned, 'IsBorned': params.IsBorned
+                  }),
+                  success: function (data) {
+                    savePhoto(params, base64Data);
+                  },
+                  error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr);
+                  }
+                });
+              }
+              else if (params.Magic == "ART") {
+                // сначала сохраняем запись в CHAT.Arts
+                $.ajax({
+                  url: '../../Services/App.asmx/SetArt2',
+                  data: JSON.stringify({
+                    'Point': params.Point, 'User': params.User, 'Action': params.Action, 'Art': params.Art, 'Master': params.Master, 'Question': params.Question, 'Option': params.Option,
+                    'Answer': params.Answer, 'GUID': params.GUID, 'Borned': params.Borned, 'IsBorned': params.IsBorned
+                  }),
+                  success: function (data) {
+                    savePhoto(params, base64Data);
+                  },
+                  error: function (xhr, ajaxOptions, thrownError) {
+                    alert(xhr);
+                  }
+                });                
+
+              }
+              
+            };
+
+            reader.readAsDataURL(file.file);
+            return false; 
+          }
+        }
+      });
+
+      // загрузчик фонового изображения
+      webix.ui({
+        id: "photoUploaderUser", view: "uploader", upload: "../uploadUser.aspx", apiOnly: true, height: 1, type: 'clean',
+        on: {
+          onBeforeFileAdd: function (item) {
+            var type = item.type.toLowerCase();
+            if (type != "jpg" && type != "jpeg") {
+              webix.message({ type: "error", text: (isEng) ? 'Only .txt' : "Только файлы jpg или jpeg!", expire: 1000 });
+              return false;
+            }
+          },
+          onAfterFileAdd: function () {
+
+          },
+          onFileUpload: function (item) {
+            onPhotoUploadUser(item);
+          },
+          onFileUploadError: function (item) {
+            onPhotoUploadUser(item);
+          }
+        }
+      });
+
+      // выбор интервала
+      webix.ui({
+        view: "popup", id: 'winPeriod',
+        body: {
+          rows: [
+            {
+              cols: [
+                {
+                  view: "menu", layout: "y", select: true, width: 160,
+                  data: [
+                    { id: "1", value: (isEng) ? 'Last month' : "Прошлый месяц", icon: 'far fa-calendar' },
+                    { id: "2", value: (isEng) ? 'Current month' : "Текущий месяц", icon: 'far fa-calendar' },
+                    { id: "3", value: (isEng) ? 'Last week' : "Прошлая неделя", icon: 'far fa-calendar' },
+                    { id: "4", value: (isEng) ? 'Current week' : "Текущая неделя", icon: 'far fa-calendar' },
+                    { id: "5", value: (isEng) ? 'Yesterday' : "Вчера", icon: 'far fa-calendar' },
+                    { id: "6", value: (isEng) ? 'Today' : "Сегодня", icon: 'far fa-calendar' },
+                    { id: "7", value: (isEng) ? 'Next month' : "Следующий месяц", icon: 'far fa-calendar' }
+                  ],
+                  on: {
+                    onMenuItemClick: function (id) {
+                      setReportInterval(id);
+                    }
+                  }
+                },
+                { view: "calendar", id: 'Start', weekHeader: true, weekNumber: true, date: new Date(), events: webix.Date.isHoliday, width: 290 },
+                { view: "calendar", id: 'Finish', weekHeader: true, weekNumber: true, date: new Date(), events: webix.Date.isHoliday, width: 290 },
+              ]
+            },
+            {
+              view: "button", autoWidth: true, value: (isEng) ? 'Apply' : "Применить",
+              click: function () {
+
+                $$('btnPeriod').define('label', webix.i18n.parseFormatStr($$('Start').getValue()) / + ' - ' + webix.i18n.parseFormatStr($$('Finish').getValue()));
+                $$('btnPeriod').refresh();
+
+                $$('winPeriod').hide();
+              }
+            },
+          ]
+        },
+        on: {
+          onHide: function () {
+            var labelText = webix.i18n.parseFormatStr($$('Start').getValue()) + ' - ' + webix.i18n.parseFormatStr($$('Finish').getValue());
+
+            if ($$('btnPeriod').config.label == labelText)
+              return;
+
+            $$('btnPeriod').define('label', labelText);
+            $$('btnPeriod').refresh();
+
+            var my_range = $("#range-days").data("ionRangeSlider");
+
+            if (my_range != null) {
+              my_range.update({
+                from: dateToTS(new Date($$('Start').getValue())),
+                to: dateToTS(new Date($$('Finish').getValue()))
+              });
+            }
+
+            if (currentReport.indexOf('BA_') != -1) {
+              $$("iconRefresh_" + currentReport).callEvent("OnItemClick");
+
+              return;
+            }
+
+            // если нужно выполнить отчет немедленно
+            if (startNow == 1) {
+              $$("iconRefresh_" + currentReport).callEvent("OnItemClick");
+
+              startNow = 0;
+            }
+          }
+        }
+      });
+
+      // выбор интервала по маршрутам
+      webix.ui({
+        view: "popup", id: 'winPeriodRoute',
+        body: {
+          rows: [
+            {
+              cols: [
+                {
+                  view: "menu", layout: "y", select: true, width: 200,
+                  data: [
+                    { id: "1", value: "Прошлый месяц", icon: 'far fa-calendar' },
+                    { id: "2", value: "Текущий месяц", icon: 'far fa-calendar' },
+                    { id: "3", value: "Прошлая неделя", icon: 'far fa-calendar' },
+                    { id: "4", value: "Текущая неделя", icon: 'far fa-calendar' }
+
+                  ],
+                  on: {
+                    onMenuItemClick: function (id) {
+                      setRouteInterval(id);
+                    }
+                  }
+                },
+                { view: "calendar", id: 'StartRoute', weekHeader: true, weekNumber: true, date: new Date(), events: webix.Date.isHoliday, width: 290 },
+                { view: "calendar", id: 'FinishRoute', weekHeader: true, weekNumber: true, date: new Date(), events: webix.Date.isHoliday, width: 290 },
+              ]
+            },
+            {
+              view: "button", autoWidth: true, value: "Применить",
+              click: function () {
+                $$('btnPeriodRoute').define('label', webix.i18n.parseFormatStr($$('StartRoute').getValue()) + ' - ' + webix.i18n.parseFormatStr($$('FinishRoute').getValue()));
+                $$('btnPeriodRoute').refresh();
+
+                $$('winPeriodRoute').hide();
+              }
+            },
+          ]
+        },
+        on: {
+          onHide: function () {
+            $$('btnPeriodRoute').define('label', webix.i18n.parseFormatStr($$('StartRoute').getValue()) + ' - ' + webix.i18n.parseFormatStr($$('FinishRoute').getValue()));
+            $$('btnPeriodRoute').refresh();
+
+            setRouteFilterChange2();
+          }
+        }
+      });
+
+      // меню отчетов
+      webix.ui({
+        view: "popup", id: 'popupLeftMenu', minWidth: 350, minHeight: 500, move: false, resize: true, borderless: true, adjust: true, body: leftMenu
+      });
+
+      // меню фильтров
+      webix.ui({
+        view: "popup", id: 'popupRightMenu', minWidth: 350, minHeight: 500, move: false, resize: true, borderless: true, adjust: true, body: rightMenu
+      });
+
+      // меню пользователя
+      webix.ui({
+        view: "popup", id: "popupUser", width: 200,
+        body: {
+          view: "list", autoheight: true, select: true, template: '<span class="webix_icon #icon#"></span>  #name#',
+          data: [
+            ...(!['RH','LT','DM', 'WB'].includes(localStorage.getItem('SystemLang'))? [{ id: "1", name: "Мобильный интерфейс", icon: "fas fa-mobile-alt" }] : []),
+            //...((localStorage.getItem('SystemLang') === 'RU') ? [{ id: "2", name: "Старый интерфейс", icon: "fas fa-arrow-left" }] : []),
+            { id: "100", name: "Выход", icon: "fas fa-sign-out-alt" }
+          ],
+          on: {
+            onItemClick: function (id) {
+              if (id == '1') {
+                sessionStorage.setItem('isReportView', '1');
+
+                var link = localStorage.getItem('MobSiteAddress');
+
+                var param =
+                  'GTS.Author=' + localStorage.getItem('Author') +
+                  '&GTS.UserName=' + localStorage.getItem('UserName') +
+                  '&GTS.RoleName=' + localStorage.getItem('RoleName') +
+                  '&GTS.CompanyID=' + localStorage.getItem('CompanyID') +
+                  '&GTS.CompanyName=' + localStorage.getItem('CompanyName') +
+                  '&GTS.IsRoute=' + localStorage.getItem('IsRoute') +
+                  '&GTS.IsPoint=' + localStorage.getItem('IsPoint') +
+                  '&GTS.IsUser=' + localStorage.getItem('IsUser') +
+                  '&GTS.IsTask=' + localStorage.getItem('IsTask') +
+                  '&GTS.Magic=' + localStorage.getItem('Magic') +
+                  '&GTS.Lang=' + localStorage.getItem('Lang') +
+                  '&GTS.Phone=' + localStorage.getItem('Phone') +
+                  '&GTS.BaseName=' + localStorage.getItem('BaseName') +
+                  '&GTS.Email=' + localStorage.getItem('Email') +
+                  '&GTS.IsRecognize=' + localStorage.getItem('IsRecognize') +
+                  '&GTS.SiteAddress=' + localStorage.getItem('SiteAddress');
+
+                window.location.href = link + param;
+
+                return;
+              }
+
+              if (id == 2) {
+                const siteAddress = localStorage.getItem('SiteAddress');
+                var link = siteAddress + 'desktop/app.html';
+                window.location.href = link;
+
+                return;
+              }
+
+              if (id == 100) {
+                $$('popupUser').hide();
+                exit();
+              }
+            }
+          }
+        }
+      })
+
+      // доступ к кастомным отчетам
+      webix.ui({
+        view: "popup", id: 'winReportAccess', width: 400, height: 400,
+        body: {
+          rows: [
+            {
+              view: "toolbar", height: 40, borderless: true,
+              cols: [
+                {
+                  view: "button", type: "icon", width: 120, label: (isEng) ? 'Clear' : "Очистить", icon: "fas fa-trash-alt",
+                  click: function () {
+                    var row = $$('listReportAccess').find(function (obj) { return (obj.IsActive == 1) });
+
+                    for (var i = 0; i < row.length; i++)
+                      row[i].IsActive = 0;
+
+                    $$('listReportAccess').refresh();
+
+                    $.ajax({
+                      url: '../../Services/Custom.asmx/SetAccess',
+                      data: JSON.stringify({ 'Report': customReportID, 'Role': -2, 'User': -2, 'Status': 0, 'Author': localStorage.getItem('Author') }),
+                      success: function () {
+                        $$('buttonAccessReport').define({ badge: 0 });
+                        $$('buttonAccessReport').refresh();
+                      },
+                      error: function (xhr, ajaxOptions, thrownError) {
+                        //alert(xhr);
+                      }
+                    });
+                  }
+                },
+                {}
+              ]
+            },
+            {
+              view: "search", value: "", placeholder: (isEng) ? 'Search...' : "Поиск...", type: "clean",
+              on: {
+                onTimedKeyPress: function () {
+                  var value = this.getValue().toUpperCase();
+                  var list = $$('listReportAccess');
+
+                  if ((value == '') || (value.length < 3)) {
+                    if (value == '') list.filter('');
+
+                    return;
+                  }
+
+                  var search = value.split(' ');
+
+                  list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[0]) != -1; });
+                  if (search[1] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[1]) != -1; }, null, true);
+                  if (search[2] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[2]) != -1; }, null, true);
+                  if (search[3] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[3]) != -1; }, null, true);
+                  if (search[4] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[4]) != -1; }, null, true);
+                  if (search[5] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[5]) != -1; }, null, true);
+                  if (search[6] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[6]) != -1; }, null, true);
+                }
+              }
+            },
+            {
+              view: "list", id: "listReportAccess", template: "html->item_checked2", select: true, type: "line", autowidth: true,
+              type: {
+                height: "auto",
+                Badge: function (obj) {
+                  if (obj.IsActive == 1) {
+                    return "<div style='float: left; margin: 0; padding: 0; width: 20px'><i class='far fa-check-square'></i></div>";//'<img src="../i/btnCheck.png" style="margin:0; padding: 0"/>';
+                  }
+                  else return '';
+                }
+              },
+              on: {
+                onItemClick: function (id) {
+                  var item = this.getItem(id);
+
+                  item.IsActive = (item.IsActive == 1) ? 0 : 1;
+                  this.updateItem(id, item);
+
+                  if (item.UserID == -1 && item.RoleID == -1) { // если выбраны все пользователи
+                    this.data.each(function (obj) {
+                      obj.IsActive = (obj.UserID == -1 && obj.RoleID == -1);
+                      this.updateItem(obj.id, obj);
+                    });
+
+                  }
+                  else {
+                    this.data.each(function (obj) {
+                      if (obj.UserID == -1 && obj.RoleID == -1) {
+                        obj.IsActive = 0;
+                        this.updateItem(obj.id, obj);
+
+                        return false;
+                      }
+                    });
+                  }
+
+                  $.ajax({
+                    url: '../../Services/Custom.asmx/SetAccess',
+                    data: JSON.stringify({ 'Report': customReportID, 'Role': item.RoleID, 'User': item.UserID, 'Status': item.IsActive, 'Author': localStorage.getItem('Author') }),
+                    success: function () {
+                      var row = $$('listReportAccess').find(function (obj) { return (obj.IsActive == 1) });
+
+                      $$('buttonAccessReport').define({ badge: row.length });
+                      $$('buttonAccessReport').refresh();
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                      //alert(xhr);
+                    }
+                  });
+                }
+              }
+            },
+            {
+              view: "button", autoWidth: true, value: "Применить",
+              click: function () {
+                $$('winReportAccess').hide();
+              }
+            },
+          ]
+        }
+      });
+
+      // контекстное меню установить фон
+      webix.ui({
+        view: "contextmenu", id: "menuDesktop", data: ["Установить фон", { $template: "Separator" }, "Очистить фон"],
+        on: {
+          onMenuItemClick: function (id) {
+            if (id == 'Установить фон') {
+
+              $$("photoUploaderUser").define("formData", { Author: localStorage.getItem('Author') });
+              $$("photoUploaderUser").fileDialog();
+            }
+            else {
+              var date = new Date();
+              var time = date.getTime();
+
+              $$("areaDesktop").define("css", { "background-image": "url(1.jpg?time=" + time + ")", "background-size": "contain", "background-position": "center", "background-repeat": "no-repeat", "height": "100vh", "width": "100vw" });
+              $$("areaDesktop").define("css", "portlet-header");
+              $$("areaDesktop").refresh();
+
+              setUserSetting('BACKGROUND', '');
+            }
+          }
+        }
+      });
+
+      webix.event($$("areaDesktop").$view, "contextmenu", function (e) {
+        $$("menuDesktop").show(e);
+        webix.html.preventEvent(e);
+      });
+
+      webix.extend($$('filterMenu'), webix.ProgressBar);
+
+      getCompany();
+    });
+
+   </script>
+
+  <script>
+    var googleKey = localStorage.getItem('googleKey');
+    const script = document.createElement('script');
+    script.async = true;
+
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + googleKey;
+    document.body.appendChild(script);
+  </script>
+
+
+  <script async src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js"></script>
+
+  <script src="../Lib/justgage/justgage.js"></script>
+  <script src="../Lib/justgage/raphael-2.1.4.min.js"></script>
+
+  <div id="map" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="mapVisit" style="width: 100%; height: 100%; display: none;"></div>
+
+  <div id="mapDash" style="width: 100%; height: 100%; display: none;"></div>
+
+  <div id="dashTotalVisitCoverage" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashTotalVisitWork" style="width: 100%; height: 100%; display: none;"></div>
+
+  <div id="dashMainBA_Distipline2" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashMainQuantBA_Distipline2" style="width: 100%; height: 100%; display: none;"></div>
+
+  <div id="dashMainBA_OSA" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashMainQuantBA_OSA" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashOSA_BA_OSA" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashCategoryBA_OSA" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashArtBA_OSA" style="width: 100%; height: 100%; display: none;"></div>
+
+  <div id="dashMainBA_OOS" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashMainQuantBA_OOS" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashOOS_BA_OOS" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashCategoryBA_OOS" style="width: 100%; height: 100%; display: none;"></div>
+  <div id="dashArtBA_OOS" style="width: 100%; height: 100%; display: none;"></div>
+
+  <input type="text" class="js-range-slider" id="range-days" value="" style="width: 100%; height: 100%; display: none;" />
+
+  <canvas id='canvasTestArtPic' style="width: 100%; height: 100%; display: none;"></canvas>
+
+  <script src="js/windows.js" charset="utf-8"></script>
+
+  <script src="js/main.js" charset="utf-8"></script>
+  <script src="js/filters.js" charset="utf-8"></script>
+
+</body>
+  </html>

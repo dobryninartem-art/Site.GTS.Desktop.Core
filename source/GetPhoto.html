@@ -1,0 +1,54 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title></title>
+
+  <script type="text/javascript" src="jquery/jquery.min.js"></script>
+ 
+  <script type="text/javascript">
+    $(document).ready(function () {
+      var param = location.href.split('?');
+      var params = param[1].split('&');
+       
+      var pointID = params[0].replace('p=', '');
+      var userID = params[1].replace('u=', '');
+      var borned = params[2].replace('b=', '');
+      var artID = params[3].replace('a=', '');     
+
+
+
+      $('#result').html('');
+
+      $.ajax({
+        url: 'Services/Report.asmx/DiksiGetPhoto',
+        type: "POST",
+        timeout: 3000000,
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        data: JSON.stringify({ 'Point': pointID, 'User': userID, 'Borned': borned, 'Art': artID }),
+        success: function (res) {
+          var html = '';
+          var data = JSON.parse(res.d);
+          var count = data.length;
+
+          for (var i = 0; i < count ; i++) {
+            html = html + data[i].Name;
+          }
+
+          $('#result').html(html);
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+          alert(xhr.statusText);
+        }
+      });
+    });
+               
+  </script>
+</head>
+<body>
+  <div id="result">
+   
+  </div>    
+</body>
+</html>

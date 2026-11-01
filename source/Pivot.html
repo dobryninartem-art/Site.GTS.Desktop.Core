@@ -1,0 +1,125 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <title></title>
+  <meta charset="utf-8" />
+
+  <script src="jquery/jquery.min.js"></script>
+
+  <script src="webix/webix.min.js"></script>
+  <script src="webix/pivot.js"></script>
+  <script src="webix/i18n/ru.js" charset="utf-8"></script>
+  <script src="webix/pivot-ex.js" charset="utf-8"></script>
+
+  <link href="webix/webix.css" rel="stylesheet" />
+  <link href="webix/pivot.css" rel="stylesheet" />
+  <link href="webix/webix-ex.css" rel="stylesheet" />
+  <link href="style/style.css" rel="stylesheet" />
+</head>
+<body>
+  <script type="text/javascript">   
+        
+    $.ajaxSetup({
+      type: "POST",
+      timeout: 300000,
+      contentType: "application/json; charset=utf-8",
+      dataType: "json"
+    });      
+    
+    var pivotTable = {
+      view: "pivot-load", id: "pivotTable", mode: "table", locale: { lang: "ru" }, url: "",
+      datatable: {
+        minX: false,
+        maxX: false,
+        footer: false,
+        cleanRows: false,
+        totalColumn: false,        
+      },    
+      override: new Map([
+        [pivot.services.Backend, MyBackend],
+        [pivot.views.table, Table],
+        [pivot.services["LocalData"], Local]
+      ]),
+      predicates: {
+        date: webix.Date.dateToStr("%d.%m.%Y")        
+      }
+    }
+        
+    webix.ready(function () {
+      webix.i18n.parseFormat = "%d.%m.%Y";
+      webix.i18n.setLocale();
+
+      webix.i18n.setLocale("ru-RU");     
+      webix.Date.startOnMonday = true;
+
+      webix.ui({
+        rows: [
+          {
+            cols: [
+              { view: "button", label: "GFD 11.02", click: "send(33582)" },
+              { view: "button", label: "JTI 11.02", click: "send(36061)" },
+              { view: "button", label: "Excel", click: "webix.toExcel(pivotTable)" },
+              {}
+            ]
+          },          
+          pivotTable,
+          {
+            height: 5
+          }
+        ]
+      });
+
+      webix.extend($$("pivotTable"), webix.ProgressBar);   
+    });
+
+    
+    function send(user) {
+      $$("pivotTable").showProgress();
+
+      $.ajax({
+        url: 'Services/Report.asmx/Total',
+        timeout: 300000,
+        data: JSON.stringify({ 'User': user, 'Start': '11.02.2024', 'Finish': '11.02.2024', 'Last': 0, 'Magic': 'ALL' }),
+        success: function (data) {
+          pivotData = JSON.parse(data.d);
+
+          var structurePivot = {
+            rows: [ "PointID", "CityName", "NetworkName", "Address", "UserName", "Borned"],
+            columns: ["ActionName", "ArtName", "QuestionName"],
+            values: [{ name: "Answer", operation: "any" }],            
+            filters:
+              [
+                { name: "CityName" }, { name: "NetworkName" }, { name: "Address" }, { name: "UserName" }, { name: "ActionName" }, { name: "ArtName" }, { name: "QuestionName" }
+              ]
+          };
+
+          var fieldPivot = [
+            { id: "PointID", value: "ID ТТ", type: "number", width: 50 },
+            { id: "CityName", value: "Город", type: "text", width: 80 },
+            { id: "NetworkName", value: "Сеть", type: "text", width: 80 },
+            { id: "Address", value: "Адрес", type: "text", width: 160 },
+            { id: "UserName", value: "Сотрудник", type: "text", width: 80 },
+            { id: "Borned", value: "Дата", type: "date", predicate: "date", width: 70 },
+            { id: "ActionName", value: "Анкета", type: "text", width: 60 },
+            { id: "ArtName", value: "SKU", type: "text", width: 60 },
+            { id: "QuestionName", value: "Вопрос", type: "text", width: 60 },
+            { id: "Answer", value: "Ответ", type: "text", format: webix.Number.numToStr({ decimalSize: 0 }), width: 100 },
+          ];          
+
+          $$("pivotTable").clearAll();
+
+          $$("pivotTable").parse(pivotData, structurePivot, fieldPivot);
+          $$("pivotTable").show();          
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+          webix.message({ type: "error", text: "Потеряно соединение с сервером. Данные не получены.", expire: 1000 });
+        },
+        complete: function () {
+          $$("pivotTable").hideProgress();
+        }
+      });
+    };
+  </script>
+</body>
+</html>

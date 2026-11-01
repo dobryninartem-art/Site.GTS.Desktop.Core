@@ -1,0 +1,52 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title></title>
+
+  <script type="text/javascript" src="jquery/jquery.min.js"></script>
+ 
+  <script type="text/javascript">
+    function send() {
+
+      $('#result').html('');
+
+      $.ajax({
+        url: 'Services/Replication.asmx/GetPhotoReport',
+        type: "POST",
+        timeout: 3000000,
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        data: JSON.stringify({ 'Start': $('#boxStart').val() == '' ? null : $('#boxStart').val(), 'Finish': $('#boxFinish').val() == '' ? null : $('#boxFinish').val() }),
+        success: function (data) {
+          $('#result').html(data.d);
+        },
+        error: function (xhr, ajaxOptions, thrownError) {
+          alert(xhr.statusText);
+        }
+      });
+      }         
+  </script>
+</head>
+<body>
+  <div class="header">
+    <h1></h1>
+
+    <table cellpadding="4">
+      <tr>
+        <td>День c:</td>
+        <td>День по:</td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td><input type="text" id="boxStart" class="date" /></td>
+        <td><input type="text" id="boxFinish" class="date" /></td>
+        <td><input type="button" style="width: 100px;" value="Применить" onclick="send()" /></td>
+      </tr>
+    </table>
+  </div>
+  <b>Результат:</b>
+  <div id='result'></div>
+</body>
+</html>

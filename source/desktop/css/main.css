@@ -1,0 +1,313 @@
+﻿.report-text {
+  text-align: center;
+  line-height: 16px;
+  font-size: 12px;
+  border: 0 !important;
+  vertical-align: auto;
+  padding: 0;
+  margin: 0;
+}
+
+.report-name {
+  padding-top: 4px;
+  line-height: 12px;
+  letter-spacing: 0px;
+}
+
+div.report-text .webix_icon {
+  font-size: 32px;
+  color: #002d6f;
+  letter-spacing: 0;
+  width: 30px;
+}
+
+.report-item {
+  border: 0;  
+}
+
+.report-header-name .webix_template {
+  font-size: 12px;
+  line-height: 16px;
+  height: 16px;
+}
+
+.report-item {
+  display: inline-block;
+  vertical-align: top;
+  margin-top: 10px;
+  margin-left: 0px;
+  border-width: 0px; 
+}
+
+.leftMenu-directory {
+  background-color: #f5f5f7;
+  font-weight: bold;
+  padding-left: 12px;
+}
+
+.photo-text {
+  text-align: center;
+  font-size: 12px;
+  line-height: 12px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.image-container {
+  position: relative;
+  display: inline-block;
+  height: 240px;
+}
+
+.image-container img {
+  height: 240px;
+  display: block;
+}
+
+.checkbox-overlay {
+  position: absolute;
+  bottom: 2px;
+  left: 3px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0px 0.2px;
+  border-radius: 2px;
+}
+
+.photo-checkbox {
+  margin: 0;
+  transform: scale(0.9);
+  opacity: 0.7;
+  accent-color: #4A4745;
+}
+
+.red_highlight {
+  background-color: #FFAAAA;
+}
+
+.portlet-header {
+  background-image: url();
+  /*background-color: #4e82bc;*/
+  background-color: #f5f5f7;
+  font-weight: bold;
+}
+
+.list-point-item-usertext-small {
+  color: black;
+  padding-left: 6px;
+  padding-top: 6px;
+  /*font-weight: bold;*/
+  font-size: 14px !important;
+  line-height: 1.1;
+}
+
+.list-message-text {
+  color: #685656;
+  padding-left: 6px;
+  font-size: 18px !important;
+  line-height: 1.1;
+}
+
+.interval_click {
+  line-height: 26px;
+}
+
+div.icon_window .webix_icon {  
+  color: #000;   
+}
+
+.toolbarHeader {
+  background-color: #f2f2fe;
+  color: white;
+  border-color: transparent;
+}
+
+div.logo .webix_img_btn {
+  line-height: 35px !important;
+  margin-left: 2px;
+}
+
+div.toolbarHeader .webix_button {
+  background-color: #f2f2fe !important;
+  color: #002d6f !important;
+  border-color: transparent !important;
+}
+
+/*div.toolbarHeader .webix_icon_btn {
+  background-color: #0d47a1 !important;
+  color: white !important;
+  border-color: transparent !important;
+}*/
+
+
+div.toolbarHeader .webix_secondary .webix_button .webix_icon,
+.webix_secondary .webix_button .webix_img_btn_text,
+.webix_secondary .webix_button .webix_icon_btn {
+  color: #002d6f !important;
+}
+
+.headerLine {
+  background-color: #f3f3fd;
+}
+
+.dash-no-visit {
+  background-color: #FFAAAA;
+}
+
+.irs--round .irs-from,
+.irs--round .irs-to,
+.irs--round .irs-single {
+  font-size: 12px;
+  line-height: 1;
+  text-shadow: none;
+  padding: 2px 4px;
+  background-color: #4E82BC;
+  color: white;
+  border-radius: 0px;
+}
+
+.irs--round .irs-bar {
+  top: 26px;
+  height: 4px;
+  background-color: #4E82BC;
+}
+
+.irs--round .irs-line {
+  top: 26px;
+  height: 4px;
+  background-color: #dee4ec;
+  border-radius: 4px;
+}
+
+.irs--round .irs-handle {
+  top: 20px;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #dee4ec;
+  background-color: white;
+  border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 255, 0.3);
+}
+
+.irs--round .irs-min,
+.irs--round .irs-max {
+  color: #333;
+  font-size: 12px;
+  line-height: 1;
+  top: 0;
+  padding: 2px 4px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 0px;
+}
+
+.fontawesome_check {
+  color: black;
+}
+
+div.webix_view.webix_pager.row_pager {
+  margin-top: 5px !important;
+}
+
+.reportAddMenu-item {
+  cursor: pointer;
+  padding: 4px;
+  margin: 0px -8px;
+  transition: background-color 0.2s;
+  border-radius: 10px;
+}
+
+.reportAddMenu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.reportAddMenu-item .webix_icon {
+  margin-right: 8px;
+  color: #94a1b3 !important;
+}
+
+.reportAddMenu-item:hover .webix_icon {
+  color: #475466 !important;
+}
+
+/* Стили для всех modalbox */
+.webix_modal_box {
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.webix_modal_box .webix_popup_title {
+  background: #f2f2fe;
+  border-bottom: 1px solid #ddd;
+  padding: 7px 15px;
+  box-shadow: none !important;
+  color: #000;
+}
+
+.webix_popup_text {
+  padding-top: 5px !important;
+}
+
+/* Стили для кнопок в modalbox */
+.webix_popup_button {
+  transition: background-color 0.2s;
+  margin-left: 10px;
+  padding: 0px 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background: white;
+  color: #475466;
+}
+
+.webix_popup_button:hover {
+  background-color: #f5f5f5;
+}
+
+.webix_popup_controls {
+  padding: 0px 12px 12px;
+}
+
+/* Стили для webix.alert */
+.webix_alert {
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.webix_alert .webix_popup_text {
+  box-shadow: none;
+  /*border-bottom: 1px solid #ddd;
+  border-radius: 5px;*/
+}
+
+/* Стили для кнопки в alert */
+.webix_alert .webix_popup_button {
+  border: 1px solid #ccc;
+  background: white;
+  color: #475466;
+}
+
+.webix_alert .webix_popup_button:hover {
+  background-color: #f5f5f5;
+}
+
+[data-readonly="1"] {
+  pointer-events: none;
+}
+
+/*Для иконки зачеркнутой лупы*/
+.icon-magnifier-off {
+  position: relative;
+  display: inline-block;
+}
+
+.icon-magnifier-off::after {
+  content: "";
+  position: absolute;
+  top: 42%;
+  left: 8%;
+  width: 70%;
+  height: 3px;
+  background-color: #94a1b3;
+  transform: rotate(-45deg);
+  transform-origin: center;
+  pointer-events: none;
+}

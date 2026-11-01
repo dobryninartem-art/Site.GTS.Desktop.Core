@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title></title>
+
+  <script type="text/javascript" src="jquery/jquery.min.js"></script>
+ 
+  <script type="text/javascript">
+    function send() {
+
+      $('#result').html('');
+
+        $.ajax({
+          url: 'Services/Replication.asmx/GePLU',
+          type: "POST",
+          timeout: 3000000,
+          contentType: "application/json; charset=utf-8",
+          dataType: "json",
+          data: JSON.stringify({  }),
+          success: function (data) {
+            $('#result').html(data.d);
+          },
+          error: function (xhr, ajaxOptions, thrownError) {
+            alert(xhr.statusText);
+          }
+        });
+    }
+
+    send();
+  </script>
+</head>
+<body>
+  <div style="position: fixed; height: 50px; min-width: 100%; min-height: 100%;">
+    
+
+    <table cellpadding="4">
+      <tr>
+        <td>Введите PLU:</td>
+        <td></td>        
+      </tr>
+      <tr>
+        <td><input type="number" id="boxPLU"  /></td>
+        <td><input type="button" style="width: 100px;" value="Сохранить" onclick="send()" /></td>
+      </tr>
+    </table>
+  </div>
+  <b>Фото:</b>
+  <div id='result' style="padding-top: 55px; position: relative"></div>
+</body>
+</html>

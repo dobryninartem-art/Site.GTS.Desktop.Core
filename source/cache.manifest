@@ -1,0 +1,37 @@
+CACHE MANIFEST
+# Версия 17.06.2015 15:15
+
+CACHE:
+/jquery/jquery.min.js
+/jquery.maskedinput.min.js
+
+/js/cities.js
+/js/data.js
+
+.webix/skin.js
+/webix/webix.css
+/webix/webix.js
+
+/i/arrowdown.gif
+/i/btnBackward.png
+/i/btnCheck.png
+/i/btnExit.png
+/i/btnPoint.png
+/i/btnPointAdd.png
+/i/btnPointRemove.png
+/i/btnProperty.png
+/i/btnRefresh.png
+/i/btnSend.png
+/i/btnService.png
+/i/leftMessage.png
+/i/logo.png
+/i/noPhoto.jpg
+/i/noPhoto_ico.jpg
+
+NETWORK:
+/style/style.css
+
+/js/script.js
+/js/main.js
+index.html
+main.html

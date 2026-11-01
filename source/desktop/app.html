@@ -1,0 +1,2608 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1251">
+  <title>gts.online отчетность</title>
+
+  <meta name="description" content="gts.online - отчетность" />
+  <script src="../jquery/jquery.min.js" charset="utf-8"></script>
+
+  <script src="../webix/webix.min.js" charset="utf-8"></script>
+  <script src="../webix/powerarray.js" charset="utf-8"></script>
+  <script src="../webix/pivot.js" charset="utf-8"></script>
+  <script src="../webix/pivot-ex.js" charset="utf-8"></script>
+
+
+  <link href="../webix/webix.css" rel="stylesheet" />
+  <link href="../webix/webix-ex.css" rel="stylesheet" />
+  <link href="../style/style.css" rel="stylesheet" />
+  <link href="../webix/pivot.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.3/css/all.css" />
+
+  <link href="app.css" rel="stylesheet" />
+
+  <script src="../js/script.js" charset="utf-8"></script>
+
+</head>
+<body>
+  <script src="app.js" charset="utf-8"></script>
+  <script src="app_ui.js" charset="utf-8"></script>
+  <script src="app_report.js" charset="utf-8"></script>
+  <script src="visit.js" charset="utf-8"></script>
+
+  <script src="../webix/i18n/ru.js"></script>
+
+  <style>
+    .red_highlight {
+      background-color: #FFAAAA;
+    }
+  </style>
+
+  <style>
+    .blue_highlight {
+      background-color: #a4afff;
+    }
+  </style>
+
+  <style>
+    ::placeholder {
+      color: gray;
+    }
+  </style>
+
+  <div id="item_checked" style="display: none">
+    <div class='list-point-item'>
+      <div class='list-point-item-text-small'>{common.Badge()} #Name#</div>
+      <div class='list-point-item-description'>#Description#</div>
+    </div>
+  </div>
+
+  <div id="item_checked2" style="display: none">
+    <div class='list-point-item'>
+      <div class='list-point-item-text-small'>{common.Badge()} #Name#</div>
+    </div>
+  </div>
+
+  <div id="item_checked3" style="display: none">
+    <div class='list-point-item'>
+      <div class='list-point-item-text-small'>{common.Badge()} #Name#</div>
+    </div>
+  </div>
+
+  <script type="text/javascript" charset="utf-8">
+    // создаем один div для всех превью
+
+
+    if (localStorage.getItem('SystemLang') !== 'RU') { exit(); /*top.location.href = 'app2.html'*/ };
+    top.location.href = 'app2.html';
+    if (author == null) exit();
+
+    webix.i18n.parseFormat = "%d.%m.%Y";
+    webix.i18n.setLocale();
+
+    value: (isEng) ? webix.i18n.setLocale("en-US") : webix.i18n.setLocale("ru-RU");
+    //webix.i18n.setLocale("ru-RU");
+    webix.Date.startOnMonday = true;
+
+    webix.DataDriver.mycsv = webix.extend({
+      row: "\n",
+      cell: "\t"
+    }, webix.DataDriver.csv);
+    var tab = '';
+    var ratingValues = ["-", "1", "2", "3", "4", "5"];
+    if (localStorage.getItem('CompanyID') == 218)
+      ratingValues = ["-", "0", "0,5", "0,8", "1,0", "1,2"]
+
+    var main = {
+      cells: [
+        {},
+        visitedPoint, visitedUser,
+        {
+          id: 'accPhotoReports',
+          rows: [
+            {
+              view: "menu", id: 'photoTypeList', borderless: true, select: true,
+              data: [
+                /*{ 'ID': 1, 'Name': 'Все фото', 'IsActive': 0, value: (isEng) ? 'All photos' : 'Все фото', 'Magic': 'ALL' },
+                { 'ID': 2, 'Name': 'По брендам', 'IsActive': 0, value: (isEng) ? 'By brands' : 'По брендам', 'Magic': 'BRAND' },
+                { 'ID': 3, 'Name': 'По тов. группам', 'IsActive': 0, value: (isEng) ? 'By product groups' : 'По тов. группам', 'Magic': 'CATEGORY' },
+                { 'ID': 4, 'Name': 'По промо', 'IsActive': 0, value: (isEng) ? 'By promos' : 'По промо', 'Magic': 'PROMO' },
+                { 'ID': 5, 'Name': 'По SKU', 'IsActive': 0, value: (isEng) ? 'By SKU' : 'По SKU', 'Magic': 'ART' },
+                { 'ID': 6, 'Name': 'По доп. анкетам', 'IsActive': 0, value: (isEng) ? 'By forms' : 'По доп. анкетам', 'Magic': 'ACTION' },
+                { 'ID': 7, 'Name': 'По фок. заданиям', 'IsActive': 0, value: (isEng) ? 'By tasks' : 'По фок. заданиям', 'Magic': 'TASK' },
+                { 'ID': 7, 'Name': 'По вывескам', 'IsActive': 0, value: (isEng) ? 'By names' : 'По вывескам', 'Magic': 'NAMES' }*/
+              ],
+              on: {
+                onItemClick: function (id) {
+                  var item = $$('photoTypeList').getItem(id);
+
+                  photoMagic = item.Magic;
+
+                  if (photoMagic == 'ACTION') {
+                    var item = $$('menuFilter').getItem(53);
+                    filterID = item.id;
+
+                    getReportDictionary(item.Magic, item.$view);
+                  }
+                  else if (photoMagic == 'PROMO') {
+                    var item = $$('menuFilter').getItem(42);
+                    filterID = item.id;
+
+                    getReportDictionary(item.Magic, item.$view);
+                  }
+
+                  getReportPhoto();
+                }
+              }
+            },
+            {
+              view: "menu", id: 'photoView', borderless: true, select: true,
+              data: [
+                /*{ id: 1, 'Name': 'Без миниатюр', 'IsActive': 0, value: (isEng) ? 'Without icons' : 'Без миниатюр', 'Magic': 'TABLE' },
+                { id: 2, 'Name': 'Миниатюры', 'IsActive': 0, value: (isEng) ? 'Icons' : 'Миниатюры', 'Magic': 'ICON' },
+                { id: 3, 'Name': 'Большие миниатюры', 'IsActive': 0, value: (isEng) ? 'Pictures' : 'Большие миниатюры', 'Magic': 'PICTURE' },
+                { id: 5, 'Name': 'Фото в архив', 'IsActive': 0, value: (isEng) ? 'Photos is zip' : 'Фото в архив', 'Magic': 'ARCHIVE' }*/
+              ],
+              on: {
+                onItemClick: function (id) {
+                  var item = $$('photoView').getItem(id);
+
+                  photoView = item.Magic;
+
+                  setPhotoHeight();
+
+                  if (photoView == 'ARCHIVE') {
+                    archivePhoto();
+                  }
+                }
+              }
+            },
+            {
+              view: "menu", id: 'artTypeList', borderless: true, select: true,
+              data: [
+                /*
+                { 'ID': 0, 'Name': 'Мои отчеты', 'IsActive': 0, value: (isEng) ? 'My reports' : 'Мои отчеты', 'Magic': 'MY' },
+                { 'ID': 1, 'Name': 'Все отчеты', 'IsActive': 0, value: (isEng) ? 'All reports' : 'Все отчеты', 'Magic': 'ALL' },
+                { 'ID': 2, 'Name': 'По SKU', 'IsActive': 0, value: (isEng) ? 'By SKU' : 'По SKU', 'Magic': 'ART' },
+                { 'ID': 3, 'Name': 'По тов. группам', 'IsActive': 0, value: (isEng) ? 'By product groups' : 'По тов. группам', 'Magic': 'CATEGORY' },
+                { 'ID': 5, 'Name': 'По брендам', 'IsActive': 0, value: (isEng) ? 'By product groups' : 'По брендам', 'Magic': 'BRAND' },
+                { 'ID': 4, 'Name': 'По промо', 'IsActive': 0, value: (isEng) ? 'By promos' : 'По промо', 'Magic': 'PROMO' },
+                { 'ID': 6, 'Name': 'По доп. анкетам', 'IsActive': 0, value: (isEng) ? 'By forms' : 'По доп. анкетам', 'Magic': 'ACTION' }*/
+              ],
+              on: {
+                onItemClick: function (id) {
+                  var item = this.getItem(id);
+
+                  artMagic = item.Magic;
+
+                  if (item.Magic == 'MY') {
+                    $$('reportView').hide();
+                    $$('reportViewMy').show();
+
+                    $$('reportTotal').hide();
+
+                    loadMenu('reportViewMy');
+
+                    return;
+                  }
+                  $$('reportTotal').clearAll();
+                  reportTotalSetColumns();
+                  pageName = 'reportTotal';
+                  hideFields('reportTotal');
+
+                  $$('reportView').show();
+                  $$('reportViewMy').hide();
+                  $$('reportTotal').show();
+                  $$('saveReport').hide();
+                  $$('editReport').hide();
+                  $$('templateInfo').hide();
+
+                  if (item.Magic == 'ACTION') {
+                    var item = $$('menuFilter').getItem(53);
+                    filterID = item.id;
+
+                    getReportDictionary(item.Magic, item.$view);
+                  }
+                  else if (item.Magic == 'PROMO') {
+                    var item = $$('menuFilter').getItem(42);
+                    filterID = item.id;
+
+                    getReportDictionary(item.Magic, item.$view);
+                  }
+
+                  refresh();
+                  $$('reportView').show();
+                }
+              }
+            },
+            {
+              view: "menu", id: 'reportView', borderless: true, select: true,
+              data: [
+                /*{ id: 1, 'Name': 'Таблица', 'IsActive': 0, value: (isEng) ? 'Table view' : 'Таблица', 'Magic': 'TABLE' },
+                { id: 2, 'Name': 'Сводная таблица', 'IsActive': 0, value: (isEng) ? 'Pivot table' : 'Сводная таблица', 'Magic': 'PIVOT' }*/
+              ],
+              on: {
+                onItemClick: function (id) {
+                  var item = this.getItem(id);
+
+                  reportView = item.Magic;
+
+                  refresh();
+                }
+              }
+            },
+            {
+              view: "menu", id: 'reportViewMy', borderless: true, select: true, hidden: true, data: [], tooltip: "#CountName#",
+              on: {
+                onItemClick: function (id) {
+                  var item = this.getItem(id);
+
+                  $$('saveReport').hide();
+                  $$('templateInfo').hide();
+                  $$('editReport').hide();
+                  $$('reportTotal').clearAll();
+
+                  if (item.Magic == 'CREATE') {
+                    webix.alert({
+                      title: "Новый отчет", ok: "Понятно", width: 500,
+                      text: "Для первичной настройки отчета <b>слева</b> выберите фильтры, по которым будет строиться отчет. Выбор начинайте с <u>Доп. анкет</u> и\\или <u>Промо-акций</u> - " +
+                        "необходимо выбрать <b>хотя бы одну</b> анкету или промо. </br></br> При необходимости выберите отдельные вопросы, список SKU, адресную программу и сотрудников, " +
+                        "визиты которых хотите учитывать в отчете.<br/></br>" +
+                        "Далее <b>скройте</b> те колонки, которых не должно быть в отчете, установите нужную ширину оставшихся колонок.<br/></br>" +
+                        "Когда все будет готово, введите название, описание отчета и выберите номер по порядку в списке отчетов. <br/><br/>Нажмите кнопку <b>СОХРАНИТЬ</b><br/>"
+                    });
+
+                    clearReportFilterAll();
+
+                    $$('reportTotal').show();
+                    hideFields('reportTotal', false);
+
+                    $$('saveReport').show();
+                    $$('templateInfo').show();
+                    $$('editReport').hide();
+                    $$("btnColumn").show();
+
+                    customReportID = -1;
+
+                    $$("reportName").setValue('');
+                    $$("reportDescription").setValue('');
+                    $$("reportSortOrder").setValue('по порядку');
+                    //$$("checkAuthoHeight").setValue(0);
+
+                    // показываем скрытые столбцы
+                    var hiddenCount = $$('reportTotal').getState().hidden.length;
+                    var hiddenColumn = $$('reportTotal').getState().hidden;
+
+                    for (var i = 0; i < hiddenCount; i++)
+                      $$('reportTotal').showColumn(hiddenColumn[i]);
+
+                    pageName = 'reportTotal';
+                    saveHideMode = false;
+
+                    return;
+                  }
+
+                  getCustomReport(item.id);
+
+                  // проверка на повторное нажатие, в этом случае открывается правка
+                  if (item.Author == localStorage.getItem("Author")) {
+                    if (customBeforeID == null)
+                      customBeforeID = id;
+                    else {
+                      if (customBeforeID == id)
+                        $$('editReport').show();
+
+                      customBeforeID = null;
+                    }
+                  }
+                  else
+                    $$('editReport').hide();
+
+                  pageName = 'reportTotalCustom';
+
+                  customReportID = item.id;
+
+                  $$('buttonAccessReport').define({ badge: item.AccessCount });
+                  $$('buttonAccessReport').refresh();
+
+                  $$("btnColumn").hide();
+                }
+              }
+            },
+            {
+              id: "saveReport", hidden: true,
+              cols: [
+                { view: "text", id: "reportName", placeholder: "Название отчета", value: "", width: 250 },
+                { view: "text", id: "reportDescription", placeholder: "Описание отчета", value: "", width: 400 },
+                { view: "combo", id: "reportSortOrder", value: "по порядку", options: ["по порядку", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"], width: 130 },
+                //{ view: "checkbox", id: "checkAuthoHeight", labelRight: "Автоширина строк", value: 0, labelWidth: 12, width: 170 },
+                { view: "button", id: "buttonSaveReport", value: "СОХРАНИТЬ", width: 120, click: "saveReport()" },
+                {}
+              ]
+            },
+
+            {
+              id: "editReport", hidden: true,
+              cols: [
+                {},
+                {
+                  view: "button", id: "buttonEditReport", css: "icon_btn", label: '<span class="webix_icon far fa-edit"></span><span class="text">Редактировать отчет</span>',
+                  width: 190, click: "editReport()"
+                },
+                {
+                  view: "button", id: "buttonAccessReport", css: "icon_btn", label: '<span class="webix_icon fas fa-user"></span><span class="text">Дать доступ</span>',
+                  width: 170, click: "getAccess()"
+                },
+                {
+                  view: "button", id: "buttonDeleteReport", css: "icon_btn_delete", label: '<span class="webix_icon far fa-trash-alt"></span><span class="text" style="color: red">Удалить</span>',
+                  width: 100, click: "deleteReport()"
+                }
+
+              ]
+            },
+            {
+              view: "template", id: "templateInfo", height: 60, hidden: true,
+              template: "Установите <b>последовательность</b> колонок, передвигая их мышкой. В полях фильтра вы можете задать <b>свое название</b> колонки.<br/>" +
+                "Задайте <b>ширину</b> колонок с помощью мыши. <br/>Вы можете предварительно <b>загрузить</b> данные кнопкой Обновить, чтобы протестировать отчет."
+            },
+            {
+              view: "accordion", multi: true, id: 'accPhotoReport',
+              cols: [
+                {
+                  collapsed: false,
+                  body: {
+                    cells: [reportPhoto, reportTotal, reportVisit, standartReportPivot
+                      /*{
+                        view: "template", id: "standartReportPivot", content: "standartReportPivot"
+                      }*/
+                    ]
+                  }
+                },
+                { view: "resizer" },
+                {
+                  header: (isEng) ? "View" : "Просмотр", collapsed: true, id: 'photoViewerPage',
+                  body: {
+                    //id: "layoutPhoto",
+                    cells: [
+                      {
+                        id: 'photoArea',
+                        rows: [
+                          {
+                            view: "toolbar", height: 50,
+                            cols: [
+                              {
+                                view: "toggle", type: "iconButton", id: "btn-hide-photo", offIcon: "fas fa-eye", onIcon: "fas fa-eye-slash", offLabel: "Скрыть", onLabel: (isEng) ? "Show" : "Показать", width: 110, hidden: (localStorage.getItem('Magic') == 'CLIENT' || localStorage.getItem('Magic') == 'TEAM'),
+                                on: {
+                                  onItemClick: function (id, e) {
+                                    onHideButton(this.getValue());
+                                  }
+                                }
+                              },
+                              {
+                                view: "toggle", type: "iconButton", id: "btn-check-photo", offIcon: "fas fa-square", onIcon: "far fa-check-square", offLabel: (isEng) ? "Photo ok" : "ФО подтвержден", onLabel: (isEng) ? "Photo ok" : "ФО подтвержден", width: 160, hidden: (localStorage.getItem('IsPoint') == '0'), hidden: (localStorage.getItem('Magic') == 'EXECUTOR' || localStorage.getItem('Magic') == 'EXECUTOR_EX' || localStorage.getItem('CompanyID') == 192),
+                                on: {
+                                  onItemClick: function (id, e) {
+                                    onCheckButton(this.getValue());
+                                  }
+                                }
+                              },
+                              { view: "button", type: "icon", icon: "fas fa-map-marker", id: 'btnGeo', label: (isEng) ? "Map" : 'На карте', width: 98, click: "getGeo()" },
+                              {
+                                view: "button", type: "iconTop", icon: "fas fa-redo", width: 50,
+                                on: {
+                                  onItemClick: function () {
+                                    $.ajax({
+                                      url: URLname + 'Services/System.asmx/RotatePhoto',
+                                      timeout: 120000,
+                                      data: JSON.stringify({ 'fileName': linkPhoto }),
+                                      success: function (data) {
+
+                                      },
+                                      error: function (xhr, ajaxOptions, thrownError) {
+                                        //alert(xhr.responseText);
+                                      },
+                                      complete: function () {
+                                        $('#photofull').attr('src', $('#photofull').attr('src') + '?' + Math.random());
+                                        $$('navigation').hideProgress();
+                                      }
+                                    });
+                                  }
+                                }
+                              },
+                              { view: "button", id: 'btnPlanograms', type: "danger", label: (isEng) ? "Planograms" : 'Планограммы', width: 150, click: "getPlanograms()", hidden: (localStorage.getItem('CompanyID') != 111) },
+                              {
+                                view: "select", id: 'photoRating', width: 80, options: [ratingValues[0], ratingValues[1], ratingValues[2], ratingValues[3], ratingValues[4], ratingValues[5]], value: ratingValues[0], hidden: (localStorage.getItem('IsPoint') == '0'), /*hidden: (localStorage.getItem('CompanyID') != 218), "-", "0", "0,5", "0,8", "1,0", "1,2"*/
+                                on: {
+                                  onChange: function () {
+                                    onCheckRating(this.getValue());
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            view: "toolbar",
+                            cols: [
+                              { view: "button", type: "iconTop", id: 'photoLeft', icon: "fas fa-angle-double-left", width: 50, click: "showPrevPhoto" },
+                              { view: "template", id: 'btnPhotoLayer', css: 'text-toolbar', borderless: true, template: "", height: 50 },
+                              { view: "button", type: 'iconTop', id: 'photoRight', icon: "fas fa-angle-double-right", width: 50, click: 'showNextPhoto' },
+                            ]
+                          },
+                          { view: "template", scroll: false, id: "photoDiv", template: "<img scr='' id='photofull'/>", type: "clean"/*, autoheight: true*/ },
+                          {
+                            borderless: true, height: 60, minHeight: 60, id: 'createTask', //hidden: true,
+                            cols: [
+                              { view: "textarea", id: 'newTaskText', maxHeight: 400, minHeight: 40, placeholder: (isEng) ? "Enter text" : "Введите текст претензии", type: "clean" },
+                              {
+                                view: "button", type: 'iconTop', icon: 'fas fa-paper-plane', label: "", width: 60, on: {
+                                  onItemClick: function () {
+                                    var GUID2 = GUID
+                                    var photoID2 = photoID
+                                    var pointID2 = pointID
+                                    var acceptorPhoto2 = acceptorPhoto
+                                    var bornedPhoto2 = bornedPhoto
+
+                                    var text = $$('newTaskText').getValue().replace(new RegExp("\n", 'g'), "<br\>").replace(new RegExp("'", 'g'), "\'").replace(new RegExp('"', 'g'), '\"').trim();
+                                    $$('newTaskText').setValue('');
+
+                                    //11.10.23 проверка гуида, если на эту фото только что уже отправили претензию
+                                    if (typeof GUID_old !== "undefined") {
+                                      if (GUID_old == GUID2) {
+                                        webix.message({ type: "error", text: (isEng) ? "The claim has already been sent" : "Претензия уже отправлена", expire: 1000 });
+                                        return;
+                                      }
+                                    }
+                                    GUID_old = GUID2
+
+                                    if (text == '') {
+                                      webix.message({ type: "error", text: (isEng) ? "Enter text" : "Введите текст претензии", expire: 1000 });
+                                      return;
+                                    }
+                                    $.ajax({
+                                      url: URLname + 'Services/UI.asmx/SetPhotoFromReport',
+                                      timeout: 120000,
+                                      data: JSON.stringify({ 'User': localStorage.getItem('Author'), 'GUID': GUID2, 'PhotoID': photoID2 }),
+                                      success: function (data) {
+                                        //претензия отправляется со стандартной категорией (общая) и на имя автора фото
+                                        $.ajax({
+                                          url: URLname + 'Services/UI.asmx/SetTask',
+                                          timeout: 120000,
+                                          data: JSON.stringify({ 'User': localStorage.getItem('Author'), 'Point': pointID2, 'Acceptor': acceptorPhoto2, 'Text': ('Задание по фото от ' + bornedPhoto2 + ': ' + text), 'Category': 6, 'GUID': GUID2 }),
+                                          success: function (data) {
+
+                                          },
+                                          error: function (xhr, ajaxOptions, thrownError) {
+                                            alert(xhr.responseText);
+                                          },
+                                          complete: function () { }
+                                        });
+
+                                      },
+                                      error: function (xhr, ajaxOptions, thrownError) {
+                                        alert(xhr.responseText);
+                                      },
+                                      complete: function () {
+                                        $$('navigation').hideProgress();
+
+                                        webix.message({ type: "success", text: "Претензия отправлена", expire: 3000 });
+                                      }
+                                    });
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        id: "geoMap",
+                        rows: [
+                          {
+                            view: "toolbar",
+                            cols: [
+                              {
+                                view: "button", type: "iconTop", icon: "fas fa-arrow-left", width: 50,
+                                click: function () {
+
+                                  $$('photoArea').show();
+                                }
+                              },
+                              { view: "template", css: 'text-toolbar', borderless: true, template: (isEng) ? 'Photo coordinates' : 'Координаты фото' }
+                            ]
+                          },
+                          { view: "template", content: "mapPhoto" }
+                        ]
+                      },
+                      {
+                        id: "visitGeoPage",
+                        rows: [
+                          {
+                            view: "toolbar", height: 50,
+                            cols: [
+                              { view: "template", css: 'text-toolbar', borderless: true, template: (isEng) ? 'Visit coordinates' : 'Координаты визита' },
+                              { view: "button", type: "icon", icon: "fas fa-street-view", id: 'btnTracking', label: (isEng) ? 'Tracking' : 'Трекинг', width: 98, click: "getGeoTracking()" },
+                            ]
+                          },
+                          { view: "template", content: "mapVisit" }
+                        ]
+                      },
+                      {
+                        id: "taskCategory",
+                        rows: [
+                          {
+                            view: "toolbar",
+                            cols: [
+                              {
+                                view: "button", type: "iconTop", icon: "fas fa-arrow-left", width: 50,
+                                on: {
+                                  onItemClick: function () {
+                                    webix.confirm({
+                                      title: "Отмена", ok: "Да", cancel: "Нет", type: "confirm", text: (isEng) ? 'Cancel the creation of the task?' : 'Отменить создание задания?',
+                                      callback: function (result) {
+                                        if (result) {
+                                          $$('newTaskText').setValue('');
+                                          $$('photoArea').show();
+                                        }
+                                        else
+                                          return false;
+                                      }
+                                    });
+                                  }
+                                }
+                              },
+                              { view: "template", css: 'text-toolbar', borderless: true, template: (isEng) ? 'Select a category' : 'Выберите категорию' }
+                            ]
+                          },
+                          {
+                            view: "list", id: "category", select: true,
+                            data: [
+                              { 'ID': 1, 'Name': 'Ассортимент', 'IsActive': 0, value: (isEng) ? 'Stock' : 'Ассортимент', 'Description': '' },
+                              { 'ID': 2, 'Name': 'Цена', 'IsActive': 0, value: (isEng) ? 'Price' : 'Цена', 'Description': '' },
+                              { 'ID': 3, 'Name': 'Выкладка', 'IsActive': 0, value: (isEng) ? 'Placement' : 'Выкладка', 'Description': '' },
+                              { 'ID': 4, 'Name': 'Продажи', 'IsActive': 0, value: (isEng) ? 'Sales' : 'Продажи', 'Description': '' },
+                              { 'ID': 5, 'Name': 'Промо', 'IsActive': 0, value: (isEng) ? 'Promo' : 'Промо', 'Description': '' },
+                              { 'ID': 6, 'Name': 'Общая', 'IsActive': 0, value: (isEng) ? 'Other' : 'Общая', 'Description': '' }
+                            ],
+                            type: {
+                              height: "auto"
+                            },
+                            on: {
+                              onItemClick: function (id) {
+                                var item = $$('category').getItem(id);
+                                categoryID = item.ID;
+                                categoryName = item.Name;
+
+                                $.ajax({
+                                  url: URLname + 'Services/Desktop.asmx/GetAcceptor',
+                                  data: JSON.stringify({ 'User': localStorage.getItem('Author'), 'Point': pointID, 'Client': clientID }),
+                                  success: function (data) {
+                                    $$('acceptor').clearAll();
+                                    $$('acceptor').parse(data.d);
+                                  },
+                                  error: function (xhr, ajaxOptions, thrownError) {
+                                    onError();
+                                  },
+                                  complete: function () {
+                                    $$('newTask').show();
+                                  }
+                                });
+
+
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        id: "newTask",
+                        rows: [
+                          {
+                            view: "toolbar",
+                            cols: [
+                              { view: "button", type: "iconTop", icon: "fas fa-arrow-left", width: 50, click: "$$('taskCategory').show()" },
+                              { view: "template", css: 'text-toolbar', borderless: true, template: (isEng) ? 'Recipients' : 'Получатели задания' }/*,
+                                                  { view: "button", type: "iconTop", icon: "fas fa-user-plus", width: 50, click: "isPointMap = 0; $$('userList').show()" }*/
+                            ]
+                          },
+                          {
+                            view: "list", id: "acceptor", template: "html->item_checked", select: true,
+                            type: {
+                              height: "auto",
+                              Badge: function (obj) {
+                                if (obj.IsActive == 1) {
+                                  return "<div style='float: left; margin: 0; padding: 0; width: 20px'><i class='far fa-check-square blue-color'></i></div>";//'<img src="../i/btnCheck.png" style="margin:0; padding: 0"/>';
+                                }
+                                else return '';
+                              },
+                            },
+                            on: {
+                              onItemClick: function (id) {
+                                var item = $$('acceptor').getItem(id);
+
+                                var isActive = (item.IsActive == 1) ? 0 : 1;
+
+                                item.IsActive = isActive;
+                                $$('acceptor').updateItem(id, item);
+                              }
+                            }
+                          },
+                          { view: "button", label: (isEng) ? 'Send' : "Отправить задание", type: 'form', height: 50, click: "saveTask()" }
+                        ]
+                      },
+                      {
+                        view: "list", id: "company", template: "html->item-list-company", select: true,
+                        type: {
+                          height: "auto",
+                          itemRoute: function (obj) {
+                            if (obj.IsRoute != '') {
+                              if (obj.IsRoute == 'маршрут ')
+                                return "<div style='background-color: #3cb878; color: white; font-size: 12px; width: 50px; height: 16px; line-height: 16px; padding: 2px;'>маршрут</div>";
+                              else
+                                return "<div style='background-color: #3cb878; color: white; font-size: 12px; width: 119px; height: 16px; line-height: 16px; padding: 2px;'>" + obj.IsRoute + "</div>";
+                            }
+                            else return ""
+                          }
+                        },
+                        on: {
+                          onItemClick: function (id) {
+                            var item = $$('company').getItem(id);
+                            companyID = item.ID;
+                            companyName = item.Name;
+
+                            getActionFilter(pointID, companyID);
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+          ]
+        },
+
+        reportReady,
+        {//меню фотоПро
+          id: 'accPhotoReportsPro',
+          rows: [
+            {
+              view: "toolbar", cols: [
+                {
+                  view: "menu", id: 'photoTypeListPro', borderless: true, select: true,
+                  data: [
+                    /*{ 'ID': 1, 'Name': 'Все фото', 'IsActive': 0, value: (isEng) ? 'All photos' : 'Все фото', 'Magic': 'ALL' },
+                    { 'ID': 2, 'Name': 'По брендам', 'IsActive': 0, value: (isEng) ? 'By brands' : 'По брендам', 'Magic': 'BRAND' },
+                    { 'ID': 3, 'Name': 'По тов. группам', 'IsActive': 0, value: (isEng) ? 'By product groups' : 'По тов. группам', 'Magic': 'CATEGORY' },
+                    { 'ID': 4, 'Name': 'По промо', 'IsActive': 0, value: (isEng) ? 'By promos' : 'По промо', 'Magic': 'PROMO' },
+                    { 'ID': 5, 'Name': 'По SKU', 'IsActive': 0, value: (isEng) ? 'By SKU' : 'По SKU', 'Magic': 'ART' },
+                    { 'ID': 6, 'Name': 'По доп. анкетам', 'IsActive': 0, value: (isEng) ? 'By forms' : 'По доп. анкетам', 'Magic': 'ACTION' },
+                    { 'ID': 7, 'Name': 'По вывескам', 'IsActive': 0, value: (isEng) ? 'By names' : 'По вывескам', 'Magic': 'NAMES' },
+                    { 'ID': 8, 'Name': 'Некорректные фото', 'IsActive': 0, value: (isEng) ? 'Bad Photos' : 'Некорректные фото', 'Magic': 'BadPhoto' },
+                    { 'ID': 10, 'Name': 'Фото в архив', 'IsActive': 0, value: (isEng) ? 'Photos is zip' : 'Фото в архив', icon: 'far fa-cloud-download', 'Magic': 'ARCHIVE' }*/
+                  ],
+                  on: {
+                    onItemClick: function (id) {
+                      var item = $$('photoTypeListPro').getItem(id);
+
+                      photoMagic = item.Magic;
+
+                      if (photoMagic == 'ACTION') {
+                        var item = $$('menuFilter').getItem(53);
+                        filterID = item.id;
+
+                        getReportDictionary(item.Magic, item.$view);
+                      }
+                      else if (photoMagic == 'PROMO') {
+                        var item = $$('menuFilter').getItem(42);
+                        filterID = item.id;
+
+                        getReportDictionary(item.Magic, item.$view);
+                      }
+
+                      if (photoMagic == 'ARCHIVE') {
+                        archivePhotoPro();
+                      }
+                      else
+                        getReportPhotoPro();
+                    }
+                  }
+                },
+                {//поиск по фотоПро
+                  view: "search", value: "", placeholder: (isEng) ? 'Search...' : "Поиск...", id: 'searchPhotoPro', type: "clean", width: 200, icon: 'fas fa-search',
+                  on: {
+                    onTimedKeyPress: function () {
+                      var value = this.getValue().toLowerCase();
+                      $$("reportPhotoPro").filter(function (obj) {
+                        return obj.SearchPhoto.toLowerCase().indexOf(value) != -1;
+                      })
+                      //количество строк = количеству фото
+                      var RowsPhotoPro = $$('reportPhotoPro').getPager().config.size;
+                      $$('reportPhotoPro').getPager().config.size = $$("reportPhotoPro").count();
+                      //обновление счетчика
+                      $$('reportPhotoPro').define('pager', 'pagerReport');
+                      $$('reportPhotoPro').refresh();
+                      //возвращаем количество строк из фильтра (для корректного отображения в других отчетах)
+                      $$('reportPhotoPro').getPager().config.size = RowsPhotoPro;
+                      //если фильтр не 1000000 или фото больше чем в фильтре, отображаем фото по выбранному фильтру
+                      if (RowsPhotoPro != 1000000 && $$("reportPhotoPro").count() > RowsPhotoPro) { $$('reportPhotoPro').refresh(); }
+                    }
+                  }
+                }
+              ]
+            },
+
+            {
+              cells: [reportPhotoPro,]
+            }
+          ]
+        },
+        {
+          id: 'accTaskReports',
+          rows: [
+            {
+              view: "menu", id: 'menuTask', borderless: true, select: true,
+              data: [
+                /*{ id: "1", value: (isEng) ? 'Tasks' : 'Задания', icon: 'fas fa-flag', Magic: 'taskTask', refreshed: false } */
+              ],
+              on: {
+                onMenuItemClick: function (id) {
+                  var item = $$('menuTask').getItem(id);
+
+                  pageID = id;
+                  pageName = item.Magic;
+
+                  if (pageName != '') {
+                    hideButton();
+                    refresh();
+                  }
+                }
+              }
+            },
+            {
+              view: "menu", id: 'taskView', borderless: true, select: true, hidden: true,
+              data: [
+                { id: 1, 'Name': 'Создать', 'IsActive': 0, value: 'Создать' },
+                { id: 2, 'Name': 'Править', 'IsActive': 0, value: 'Править' },
+                { id: 3, 'Name': 'Удалить', 'IsActive': 0, value: 'Удалить' }
+              ],
+              on: {
+                onItemClick: function (id) {
+                  var item = $$('taskView').getItem(id);
+
+                  var taskItem = $$('task').getSelectedItem();
+
+                  switch (item.id) {
+                    case 1:
+                      taskID = null;
+
+                      $$('TaskName').setValue('');
+                      $$('TaskDescription').setValue('');
+                      $$('TaskStart').setValue(webix.i18n.parseFormatStr(new Date()));
+                      $$('TaskFinish').setValue(webix.i18n.parseFormatStr(new Date()));
+                      $$('IsAnswer').setValue(0);
+
+                      $$('winFocus').show();
+
+                      break;
+                    case 2:
+                      if (taskItem == null)
+                        return;
+
+                      taskID = taskItem.ID;
+
+                      $$('TaskName').setValue(taskItem.TaskName);
+                      $$('TaskDescription').setValue(taskItem.TaskDescription);
+                      $$('TaskStart').setValue(webix.i18n.parseFormatStr(taskItem.TaskStart));
+                      $$('TaskFinish').setValue(webix.i18n.parseFormatStr(taskItem.TaskFinish));
+                      $$('IsAnswer').setValue(taskItem.IsAnswer);
+
+                      $$('winFocus').show();
+
+                      break;
+                    case 3:
+                      if (taskItem == null)
+                        return;
+
+                      taskID = taskItem.ID;
+
+                      var text = 'Подтверждаете удаление фокусного задания<br/><b>';
+
+                      if (taskID != null) {
+                        webix.confirm({
+                          title: "Удалить фокусное задание",
+                          ok: "ОК",
+                          cancel: "Отмена",
+                          type: "confirm",
+                          text: text + taskItem.TaskName + "</b>?",
+                          callback: function (result) {
+                            if (result) {
+                              //$.ajax({
+                              //  url: URLname + 'Services/Admin.asmx/DeleteTask',
+                              //  timeout: 300000,
+                              //  data: JSON.stringify({ 'Task': taskID }),
+                              //  success: function (data) {
+                              //    $$('task').remove(taskItem.id);
+                              //  },
+                              //  error: function (xhr, ajaxOptions, thrownError) {
+                              //    webix.message({ type: "error", text: "Потеряно соединение с сервером. Данные не получены.", expire: 1000 });
+                              //  }
+                              //});
+                            }
+                          }
+                        });
+                      }
+
+                      break;
+                  }
+                }
+              }
+            },
+            {
+              view: "accordion", multi: true, id: 'accTaskReport',
+              cols: [
+                {
+                  collapsed: false,
+                  body: {
+                    cells: [reportTask, reportFocus/*, tasks*/]
+                  }
+                },
+                { view: "resizer" },
+                {
+                  header: (isEng) ? "View messages" : "Просмотр сообщений", collapsed: true, id: 'taskPage',
+                  body: {
+                    rows: [
+                      {
+                        view: "list", id: "messageTask", autowidth: true, type: { height: "auto" },
+                        sort: {
+                          by: "#id#",
+                          dir: "asc",
+                          as: "int"
+                        },
+                        template: function (obj) {
+                          var user;
+                          var photo = getMessagePhoto(obj.Photo);
+
+                          if (obj.UserID == taskUserID/*localStorage.getItem('Author')*/) {
+                            user = "<div class='list-point-item-usertext-small'><i class='fa fa-angle-double-right'></i> " + obj.UserName + "</div>";
+
+                            return '<div class="list-point-item" style="padding-top: 2px;">' +
+                              '<div style="float: left; "><i class="fa fa-angle-double-right fa-4x fa-fw gray"></i> </div>' +
+                              '<div style="margin-left: 70px; background-color: #dae2ed; padding: 8px;">' +
+                              '<div style="float: right; width: 40px; text-align: right"><div class="borned">' + obj.Borned + '</div></div>' +
+                              '<div class="list-message-text">' + obj.Text + '</div>' + photo + user +
+                              '</div>' +
+                              '</div>';
+                          }
+                          else {
+                            user = "<div class='list-point-item-usertext-small'><i class='fa fa-angle-double-right'></i> " + obj.UserName + "</div>";
+
+                            return '<div class="list-point-item" style="padding-top: 2px;">' +
+                              '<div style="float: right; "><i class="fa fa-angle-double-left fa-4x fa-fw gray"></i> </div>' +
+                              '<div style="margin-right: 70px; background-color: #e8e9eb; padding: 8px;">' +
+                              '<div style="float: right; width: 40px; text-align: left"><div class="borned">' + obj.Borned + '</div></div>' +
+                              '<div class="list-message-text">' + obj.Text + '</div>' + photo + user +
+                              '</div>' +
+                              '</div>';
+                          }
+                        },
+                        on: {
+                          onItemClick: function (id) {
+                            $$('photoViewerTask2').expand();
+                            const siteAddress = localStorage.getItem('SiteAddress');
+                            var item = $$('messageTask').getItem(id);
+                            if (item.Photo != '') {
+                              //var photofile = '../' + item.Photo;
+                              var photofile = siteAddress + item.Photo;
+
+                              var template = '<div><img src="' + photofile + '" id="photofullTask2" onclick="zoom(\'photofullTask2\')"/></div>';
+                              //var container = $('div[view_id="photoDivTask2"]');
+
+                              //var width = container.width();
+                              //var height = container.height();
+
+                              $$('photoDivTask2').define('template', template);
+                              //$$('photoDivTask2').define('width', width);
+                              //$$('photoDivTask2').define('height', height);
+                              $$('photoDivTask2').define('scroll', 'false');
+                              $$('photoDivTask2').refresh();
+
+                              fix_size('photofullTask2', 'photoDivTask2');
+                            }
+                          }
+                        }
+                      },
+                      { view: "resizer" },
+                      {
+                        id: 'textMessages', borderless: true, height: 60, minHeight: 60,
+                        cols: [
+                          { view: "textarea", id: 'textMessage', maxHeight: 400, minHeight: 60, placeholder: "Введите сообщение", type: 'clean' },
+                          {
+                            view: "button", type: 'iconTop', icon: 'fas fa-paper-plane', label: "", width: 60, id: 'buttonSend',
+                            on: {
+                              onItemClick: function () {
+                                var text = $$('textMessage').getValue().replace(new RegExp("\n", 'g'), "<br\>").replace(new RegExp("'", 'g'), "\'").replace(new RegExp('"', 'g'), '\"').trim();
+                                if (text == '') return;
+
+                                $$("textMessage").setValue('');
+
+                                var fileName = '';
+                                var GUID = +new Date;
+
+                                var record = {
+                                  id: GUID, GUID: GUID, TaskID: taskID, UserID: localStorage.getItem('Author'), Text: text, Borned: getDateTime(), UserName: 'я', Photo: fileName, Acceptors: '', IRead: 1, PointID: pointID, IsNot: 0,
+                                  Lat: 0, Lon: 0, Error: 0, IsDelivered: 1
+                                };
+
+                                var id = $$("messageTask").add(record);
+                                $$('messageTask').showItem(id);
+
+                                // отправка сообщения
+                                send('SetMessage', { 'Task': taskID, 'User': localStorage.getItem('Author'), 'Text': text, 'GUID': GUID }, 'messages', id);
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                },
+                { view: "resizer" },
+                {
+                  header: (isEng) ? "View photo" : "Просмотр фото", collapsed: true, id: 'photoViewerTask2',
+                  body: {
+                    //id: "layoutPhoto",
+                    cells: [
+                      {
+                        id: 'photoAreaTask', rows: [
+                          { view: "template", scroll: false, id: "photoDivTask2", template: "<img scr='' id='photofullTask2'/>", type: "clean"/*, autoheight: true */ }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+          ]
+        },
+        {
+          id: 'reportPivot',
+          rows: [
+            {
+              view: "menu", id: 'menuPivot', borderless: true, select: true, scroll: "y",
+              data: [
+                /*{ id: "1", value: (isEng) ? 'Plan-fact visits' : "Визиты план-факт", icon: 'fas fa-location-arrow', Magic: 'pivotDiscipline', refreshed: false },
+                { id: "2", value: (isEng) ? 'Visits pivot' : "Визиты сводный", icon: 'fas fa-location-arrow', Magic: 'pivotVisitTotal', refreshed: false },
+                { id: "3", value: (isEng) ? 'Plan-fact users visit' : "Маршруты по сотрудникам", icon: 'fas fa-location-arrow', Magic: 'pivotDisciplineUsers', refreshed: false },
+                { id: "4", value: (isEng) ? 'Route execution' : "Выполнение по маршруту", icon: 'fas fa-location-arrow', Magic: 'routeTotal', refreshed: false },
+                { id: "5", value: (isEng) ? 'Stock report' : "Отчет по наличию", icon: 'far fa-check-square', Magic: 'reportStock', refreshed: false } */
+              ],
+              on: {
+                onMenuItemClick: function (id) {
+                  var item = $$('menuPivot').getItem(id);
+
+                  pageID = id;
+                  pageName = item.Magic;
+
+                  if (pageName != '') {
+                    hideButton();
+                    refresh();
+                  }
+                }
+              }
+            },
+            {
+              cells: [{}, pivotDiscipline, pivotVisitTotal, pivotDisciplineUsers, routeTotal, routeError, reportStock]
+            }
+          ]
+        },
+        {
+          id: 'reportAdd',
+          rows: [
+            {
+              view: "menu", id: 'menuAdd', borderless: true, select: true, scroll: "y",
+              sort: {
+                by: "#SortOrder#",
+                dir: "asc",
+                as: "int"
+              },
+              on: {
+                onMenuItemClick: function (id) {
+                  var item = $$('menuAdd').getItem(id);
+
+                  pageID = id;
+                  pageName = item.PageName;
+                  procName = item.ProcName;
+                  addReportID = id;
+
+                  if (pageName != '') {
+                    hideButton();
+                    refresh();
+
+                  }
+                }
+              }
+            },
+            {
+              cells: [{}, addReportPivot, reportAdditional, mapMHP, VinagroDistribution]
+            }
+          ]
+        },
+        {
+          cells: [{}, mapDashboard]
+        },
+        {
+          id: 'reportAI',
+          rows: [
+            {
+              view: "menu", id: 'menuAI', borderless: true, select: true, scroll: "y", data: [
+                /*{ id: "1", value: (isEng) ? 'Matrix' : "Матрицы", icon: 'fas fa-location-arrow', Magic: 'reportAIMatrix', refreshed: false },
+                { id: "2", value: (isEng) ? 'Matrix pivot' : "Матрицы сводный", icon: 'fas fa-location-arrow', Magic: 'reportAIMatrixTotal', refreshed: false },*/
+              ],
+              sort: {
+                by: "#SortOrder#",
+                dir: "asc",
+                as: "int"
+              },
+              on: {
+                onMenuItemClick: function (id) {
+                  var item = $$('menuAI').getItem(id);
+
+                  pageID = id;
+                  pageName = item.Magic;
+
+                  if (pageName != '') {
+                    hideButton();
+                    refresh();
+
+                  }
+                }
+              }
+            },
+            {
+              cells: [{}, reportAIMatrix, reportAIMatrixTotal]
+            }
+          ]
+        },
+        {
+          id: 'reportDashboard',
+          rows: [
+            {
+              view: "menu", id: 'menuDashboard', borderless: true, select: true,
+              data: [
+                //{ id: "1", value: (isEng) ? 'Basic' : "Основное", Magic: 'mainDashboard', refreshed: false },
+              ],
+              on: {
+                onMenuItemClick: function (id) {
+                  var item = $$('menuDashboard').getItem(id);
+
+                  pageID = id;
+                  pageName = item.Magic;
+                  tableName = item.Magic;
+
+                  if (pageName != '') {
+                    hideButton();
+                    refresh();
+                  }
+                }
+              }
+            },
+            {
+              cells: [{}, mainDashboard]
+            }
+          ]
+        },
+        {
+          id: 'reportDirectory',
+          rows: [
+            {
+              view: "menu", id: 'menuDirectory', borderless: true, select: true, scroll: "y",
+              data: [
+                /*{ id: "1", value: (isEng) ? 'Matrix' : "Матрицы", icon: 'fas fa-book', Magic: 'reportMatrix', refreshed: false },
+                { id: "2", value: (isEng) ? 'AP' : "Адресная программа", icon: 'fas fa-book', Magic: 'reportAP', refreshed: false }*/
+              ],
+              on: {
+                onMenuItemClick: function (id) {
+                  var item = $$('menuDirectory').getItem(id);
+
+                  pageID = id;
+                  pageName = item.Magic;
+
+                  if (pageName != '') {
+                    hideButton();
+                    refresh();
+                  }
+                }
+              }
+            },
+            {
+              view: "menu", id: 'menuMatrix', borderless: true, select: true, scroll: "y",
+              data: [
+                /*{ id: "1", value: (isEng) ? 'SKU' : "SKU", icon: 'fas fa-file-text', Magic: 'reportDirectoryArt', refreshed: false },
+                { id: "2", value: (isEng) ? 'By Point' : "По ТТ", icon: 'fas fa-file-text', Magic: 'reportDirectoryArtPointMaps', refreshed: false },
+                { id: "3", value: (isEng) ? 'By Fromat' : "По форматам", icon: 'fas fa-file-text', Magic: 'reportDirectoryArtFormatMap', refreshed: false },
+                { id: "4", value: (isEng) ? 'By Network' : "По сетям", icon: 'fas fa-file-text', Magic: 'reportDirectoryArtNetworkMap', refreshed: false }*/
+              ],
+              on: {
+                onMenuItemClick: function (id) {
+                  var item = $$('menuMatrix').getItem(id);
+
+                  pageID = id;
+                  pageName = item.Magic;
+
+                  if (pageName != '') {
+                    hideButton();
+                    refresh();
+                  }
+                }
+              }
+            },
+            {
+              view: "menu", id: 'menuAP', borderless: true, select: true, scroll: "y",
+              data: [
+                //{ id: "1", value: (isEng) ? 'By AddressProgramm' : "Адресная программа ", icon: 'fa fa-file-text', Magic: 'reportDirectoryAP', refreshed: false }
+              ],
+              on: {
+                onMenuItemClick: function (id) {
+                  var item = $$('menuAP').getItem(id);
+
+                  pageID = id;
+                  pageName = item.Magic;
+
+                  if (pageName != '') {
+                    hideButton();
+                    refresh();
+                  }
+                }
+              }
+            },
+            {
+              cells: [{}, reportDirectoryArt, reportDirectoryArtPointMaps, reportDirectoryArtFormatMap, reportDirectoryArtNetworkMap, reportDirectoryAP]
+            }
+          ]
+        },
+        { view: "template", id: "mapArea", content: "map" },
+        // невидимый список для хранения настроек таблицы
+        { view: "list", id: "tableSetting" },
+        { view: "list", id: "acceptorMap" },
+        { view: "list", id: "geoTracking" },
+        { view: "datatable", id: "photoVisit", height: 0, select: true, borderless: true },
+        { view: "datatable", id: "photoAdditional", height: 0, select: true, borderless: true },
+        { view: "datatable", id: "visitMHP", height: 0, select: true, borderless: true }
+      ]
+    }
+
+    webix.ready(function () {
+      webix.ui.fullScreen();
+
+      webix.ui({
+        id: 'navigation', animate: { duration: 200 },
+        cells: [
+          {
+            id: 'nav2',
+            rows: [
+              {
+                view: "toolbar", id: 'headTollbar',
+                elements: [
+                  {
+                    view: "button", id: 'bnt-context-menu', type: "iconTop", icon: "fas fa-bars", width: 50,
+                    click: function () {
+                      if ($$("menu").config.hidden) {
+                        $$("menu").show();
+                      }
+                      else
+                        $$("menu").hide();
+                    }
+                  },
+                  {
+                    view: "button", type: 'icon', id: 'btnPeriod', icon: 'far fa-calendar-alt', label: "08.02.2017 - 08.02.2017", width: 190, tooltip: "Интервал дат отчетов",
+                    click: function () {
+                      $$('winPeriod').show(this.$view);
+                    }
+                  },
+                  {
+                    view: "menu", id: 'menuReport', borderless: true, scroll: "auto",
+                    data: [
+                      /*{ id: "11", value: (isEng) ? 'Dashboard' : "Dashboard", icon: 'fas fa-chart-area', Magic: 'reportDashboard', refreshed: false },
+                      { id: "1", value: (isEng) ? 'Visited points' : "Посещенные ТТ", icon: 'fas fa-globe', Magic: 'pointVisit', refreshed: false },
+                      { id: "2", value: (isEng) ? 'Active staff' : "Активные сотрудники", icon: 'fas fa-user', Magic: 'userVisit', refreshed: false },
+                      { id: "3", value: (isEng) ? 'Photos' : "Фото", icon: 'fas fa-camera', Magic: 'reportPhoto', refreshed: false },
+                       { id: "10", value: (isEng) ? 'Photos PRO' : "Фото PRO", icon: 'fas fa-camera', Magic: 'reportPhotoPro', refreshed: false },
+                      { id: "4", value: (isEng) ? 'Reports' : "Отчеты", icon: 'fas fa-star', Magic: 'reportTotal', refreshed: false },
+                      { id: "5", value: (isEng) ? 'Visits' : "Визиты", icon: 'fas fa-location-arrow', Magic: 'reportVisit', refreshed: false },
+                      { id: "6", value: (isEng) ? 'Tasks' : "Задания", icon: 'fas fa-flag', Magic: 'reportTask', refreshed: false },
+                      { id: "7", value: (isEng) ? 'Analytics' : "Аналитика", icon: 'fas fa-chart-area', Magic: 'reportPivot', refreshed: false },
+                      { id: "13", value: (isEng) ? 'Recognition' : "AI", icon: 'fas fa-camera', Magic: 'reportAI', refreshed: false },
+                      { id: "12", value: (isEng) ? 'Directory' : "Справочник", icon: 'fas fa-book', Magic: 'reportDirectory', refreshed: false },
+                       { id: "14", value: (isEng) ? 'Map dashboard' : "Карта покрытия", icon: 'fas fa-globe', Magic: 'mapDashboard', refreshed: false },
+                      { id: "8", value: (isEng) ? 'Additionally' : "Дополнительно", icon: 'fas fa-external-link-square', Magic: 'reportAdd', refreshed: false },
+                      { id: "9", value: (isEng) ? 'Ready-made reports' : "Готовые отчеты", icon: 'fas fa-file-excel-o', Magic: 'reportReady', refreshed: false }*/
+
+                    ],
+                    on: {
+                      onMenuItemClick: function (id) {
+                        var item = $$('menuReport').getItem(id);
+
+                        $$('menuReport').select(id);
+
+                        pageID = id;
+                        pageName = item.Magic;
+
+                        if (pageName != '') {
+                          $$('photoViewerPage').collapse();
+
+                          hideButton();
+                          refresh();
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                view: "multiview", id: "nav", animate: { duration: 100 },
+                cols: [
+                  {
+                    view: "accordion", multi: true,
+                    cols: [
+                      {
+                        header: "Фильтры отчетов", collapsed: false, width: 260, maxWidth: 300,
+                        body: {
+                          rows: [
+                            {
+                              view: "checkbox", id: "IsLastVisit", labelRight: (isEng) ? 'Only last visit' : "Только последний визит", css: "clear-all-filter", labelWidth: 14, value: 0,
+                              click: function () {
+                                setFilterChange();
+                                refresh();
+                              }
+                            },
+                            {
+                              view: "menu", id: 'menuFilter', layout: "y", select: false, scroll: "y",
+                              data: [
+                                /*{ $template: "Spacer" },
+                                { id: "1", value: (isEng) ? 'Clear all filters' : "Очистить все фильтры", icon: "trash", Magic: '' },
+                                { id: "10", value: (isEng) ? 'All offices' : "Все офисы", icon: "globe", Magic: 'Office' },
+                                { id: "14", value: (isEng) ? 'all cities' : "Все города", icon: "globe", Magic: 'City' },
+                                { id: "11", value: (isEng) ? 'All networks' : "Все сети", icon: "globe", Magic: 'Network' },
+                                { id: "15", value: (isEng) ? 'All signs of networks' : "Все вывески сетей", icon: "globe", Magic: 'NetworkName' },
+                                { id: "12", value: (isEng) ? 'All formats' : "Все форматы", icon: "globe", Magic: 'Format' },
+                                { id: "13", value: (isEng) ? 'All outlets' : "Все торговые точки", icon: "globe", Magic: 'Point' },
+                                { $template: "Spacer" },
+                                { id: "20", value: (isEng) ? 'All positions' : "Все должности", icon: "user", Magic: 'Role' },
+                                { id: "21", value: (isEng) ? 'All employees' : "Все coтрудники", icon: "user", Magic: 'Users' },
+                                { $template: "Spacer" },
+                                { id: "50", value: (isEng) ? 'All product groups' : "Все товарные группы", icon: "star", Magic: 'ArtCategory' },
+                                { id: "51", value: (isEng) ? 'All brands' : "Все бренды", icon: "star", Magic: 'ArtBrand' },
+                                { id: "52", value: (isEng) ? 'All SKU' : "Все SKU", icon: "star", Magic: 'Art' },
+                                { $template: "Spacer" },
+                                { id: "53", value: (isEng) ? 'All forms' : "Все доп. анкеты", icon: "star", Magic: 'ArtReport' },
+                                { id: "42", value: (isEng) ? 'All promo' : "Все промо-акции", icon: "camera", Magic: 'Action' },
+                                { id: "54", value: (isEng) ? 'All questions' : "Все вопросы", icon: "star", Magic: 'Question' },
+                                { $template: "Spacer" },
+                                { id: "41", value: (isEng) ? 'All photo categories' : "Все категории фотоотчетов", icon: "camera", Magic: 'PhotoCategory' },
+                                { $template: "Spacer" },
+                                { id: "40", value: (isEng) ? 'All task categories' : "Все категории заданий", icon: "flag", Magic: 'Category' },
+                                { id: "45", value: "Все рекламации", icon: "flag", Magic: 'TaskVisit' },
+                                { $template: "Spacer" },
+                                { id: "30", value: (isEng) ? 'All companies' : "Все компании", icon: "filter", Magic: 'Company' },*/
+                              ],
+                              on: {
+                                onMenuItemClick: function (id) {
+                                  if (id == '1') {
+                                    clearReportFilterAll();
+                                    return;
+                                  }
+
+                                  var item = $$('menuFilter').getItem(id);
+                                  filterID = item.id;
+
+                                  getReportDictionary(item.Magic, this.$view);
+                                }
+                              }
+                            },
+                            { view: "checkbox", id: "IsOnline", labelRight: (isEng) ? 'Online update' : "Онлайн-обновление отчетов", labelWidth: 14, value: 0, click: function () { IsOnline = !IsOnline; filterChange = false; localStorage.setItem('IsOnline', IsOnline) } },
+                          ]
+
+                        }
+                      },
+                      {
+                        body: {
+                          rows: [
+                            {
+                              id: 'rowPager',
+                              cols: [
+                                {
+                                  view: "label", id: 'companyname', label: "Компания", width: 190, tooltip: (isEng) ? 'Company' : "Компания", css: { 'font-size': '15px' }
+                                },
+                                {},
+                                {
+                                  view: "pager", id: "pagerReport", size: 100, group: 10, width: 300, template: function (data, common) {
+                                    return common.first() + common.prev() + ((isEng) ? 'Rows:' : 'Всего: ') + data.count + common.next() + common.last();
+                                  }
+                                },
+                                {
+                                  view: "select", options: ["20", "50", "100", "500", "1000", (isEng) ? 'All rows' : "Все строки"], width: 90, value: "100",
+                                  on: {
+                                    onChange: function () {
+                                      var value = this.getValue();
+                                      if (value == 'Все строки' || value == 'All rows')
+                                        value = 1000000;
+
+                                      var list = $$(pageName);
+
+                                      if (list = "taskTask")
+                                        list = $$("reportTask");
+
+                                      list.getPager().config.size = value * 1;
+                                      list.refresh();
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            main
+                          ]
+                        }
+                      },
+                      {
+                        width: 50,
+                        body: {
+                          view: "toolbar", id: "toolbar", layout: "y", height: 400,
+                          rows: [
+
+                            { view: "button", id: 'btnRefresh', type: "icon", icon: "fas fa-sync", width: 50, tooltip: (isEng) ? 'Refresh' : "Обновить", click: function () { filterChange = true; refresh() } },
+                            { view: "button", id: 'btnTable', type: "icon", icon: "fas fa-table", width: 50, tooltip: (isEng) ? 'Table view' : "Табличный вид", click: function () { viewName = 'table'; refresh(); } },
+                            { view: "button", id: 'btnMap', type: "icon", icon: "fas fa-map-marker", width: 50, tooltip: (isEng) ? 'Map' : "Отобразить на карте", click: function () { viewName = 'map'; refresh(); } },
+                            { view: "button", id: 'btnExcel', type: "icon", icon: "fas fa-file-excel", width: 50, tooltip: (isEng) ? 'Excel' : "Экспорт в Excel", click: "excel()" },
+                            { view: "button", id: 'btnExcelDownload', type: "icon", icon: "fas fa-angle-double-down", width: 50, tooltip: (isEng) ? 'Excel' : "Скачать отчет в Excel", click: function () { toExcelDownload() } },
+                            { height: 10 },
+                            { view: "button", id: 'btnColumn', type: "icon", icon: "fas fa-outdent", width: 50, tooltip: (isEng) ? 'Show\\hide column' : "Показать\\скрыть колонки", click: 'getField()' }
+                          ]
+                        }
+                      }
+
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'routes',
+            rows: [
+              {
+                view: "toolbar", id: "toolbar-route",
+                elements: [
+                  {
+                    view: "button", type: "iconTop", icon: "fas fa-bars", width: 50,
+                    click: function () {
+                      if ($$("menu").config.hidden) {
+                        $$("menu").show();
+                      }
+                      else
+                        $$("menu").hide();
+                    }
+                  },
+                  { view: "template", css: 'text-toolbar', borderless: true, template: (isEng) ? 'Routes' : "Маршруты на неделю" },
+                  {},
+                  { view: "button", type: "iconTop", icon: "fas fa-file-excel", width: 50, tooltip: (isEng) ? 'Excel' : "Экспорт в Excel", click: "pageName = 'route'; excel()" },
+                  { view: "button", type: "iconTop", icon: "fas fa-cloud-download-alt", width: 50, tooltip: (isEng) ? 'Download from template' : "Загрузить из шаблона", click: "tab = 'route'; download()" },
+                  { width: 5 },
+                  { view: "button", type: "iconTop", icon: "fas fa-sync", width: 50, tooltip: (isEng) ? 'Refresh' : "Обновить", click: "getRoute()" },
+                ]
+              },
+              {
+                view: "datatable", id: "route", select: true, resizeColumn: true, editable: true, //rowHeight: 24,
+                columns: [
+                  { id: "Link", header: ["АП", { content: "textFilter" }], width: 50, editor: "select", options: ['Да', 'Нет'], css: { 'text-align': 'center' } },
+                  { id: "ID", header: ["ID ТТ", { content: "textFilter" }], width: 40, css: { 'text-align': 'right', 'background-color': '#fff799 !important' }, sort: "string" },
+                  { id: "OfficeName", header: ["Офис", { content: "textFilter" }], width: 70, sort: "string" },
+                  { id: "CityName", header: ["Город", { content: "textFilter" }], width: 70, sort: "string" },
+                  { id: "NetworkName", header: ["Сеть", { content: "textFilter" }], width: 70, sort: "string" },
+                  { id: "Name", header: ["Вывеска", { content: "textFilter" }], width: 70, sort: "string" },
+                  { id: "Address", header: ["Адрес", { content: "textFilter" }], minWidth: 60, adjust: "data", sort: "string" },
+                  { id: "Day1", header: ["ПН", { content: "textFilter" }], width: 50, editor: "select", options: ['Да', 'Нет'], css: { 'text-align': 'center' } },
+                  { id: "Day2", header: ["ВН", { content: "textFilter" }], width: 50, editor: "select", options: ['Да', 'Нет'], css: { 'text-align': 'center' } },
+                  { id: "Day3", header: ["СР", { content: "textFilter" }], width: 50, editor: "select", options: ['Да', 'Нет'], css: { 'text-align': 'center' } },
+                  { id: "Day4", header: ["ЧТ", { content: "textFilter" }], width: 50, editor: "select", options: ['Да', 'Нет'], css: { 'text-align': 'center' } },
+                  { id: "Day5", header: ["ПТ", { content: "textFilter" }], width: 50, editor: "select", options: ['Да', 'Нет'], css: { 'text-align': 'center' } },
+                  { id: "Day6", header: ["СБ", { content: "textFilter" }], width: 50, editor: "select", options: ['Да', 'Нет'], css: { 'text-align': 'center' } },
+                  { id: "Day7", header: ["ВС", { content: "textFilter" }], width: 50, editor: "select", options: ['Да', 'Нет'], css: { 'text-align': 'center' } },
+                  { id: "UserID", header: ["ID сотрудника", { content: "textFilter" }], adjust: "data", minWidth: 20, css: { 'text-align': 'right', 'background-color': '#fff799 !important' }, sort: "string" },
+                  { id: "UserName", header: ["ФИО", { content: "textFilter" }], minWidth: 100, adjust: "data", sort: "string" },
+                  { id: "RoleName", header: ["Должность", { content: "textFilter" }], minWidth: 100, adjust: "data", sort: "string" },
+                  { id: "MasterName", header: ["Руководитель", { content: "textFilter" }], minWidth: 100, adjust: "data", sort: "string" }
+                ],
+                on: {
+                  onAfterEditStop: function (state, editor, ignoreUpdate) {
+                    if (state.value != state.old) {
+                      var item = $$("route").getItem(editor.row);
+
+                      if (item.Day1 == 'Нет') item.Day1 = '';
+                      if (item.Day2 == 'Нет') item.Day2 = '';
+                      if (item.Day3 == 'Нет') item.Day3 = '';
+                      if (item.Day4 == 'Нет') item.Day4 = '';
+                      if (item.Day5 == 'Нет') item.Day5 = '';
+                      if (item.Day6 == 'Нет') item.Day6 = '';
+                      if (item.Day7 == 'Нет') item.Day7 = '';
+
+                      $$('route').updateItem(item.id, item);
+
+                      SetRoute(item.ID, item.UserID, item.Link, item.Day1, item.Day2, item.Day3, item.Day4, item.Day5, item.Day6, item.Day7);
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: 'routeDownloads',
+            rows: [
+              {
+                view: "toolbar", borderless: true,
+                elements: [
+                  {
+                    view: "button", type: "iconTop", icon: "fas fa-arrow-left", width: 50,
+                    on: {
+                      onItemClick: function () {
+                        if ($$('btn-route-download-run').isVisible())
+                          getRoute(1);
+
+                        $$('btn-route-download').show();
+                        $$('btn-route-download-run').hide();
+
+                        $$('navigation').back();
+                      }
+                    }
+                  },
+                  { view: "button", type: 'icon', id: 'btn-route-download-run', icon: "fas fa-play", label: (isEng) ? 'Run' : 'Применить', width: 150, click: "loadRoute()", hidden: true },
+                  {
+                    view: "button", id: 'btn-route-download', label: '<span class="webix_icon fas fa-cloud-download-alt"></span><span class="text">Загрузить</span>', width: 170, tooltip: (isEng) ? 'Download' : "Загрузить",
+                    on: {
+                      onItemClick: function () {
+                        tab = 'route';
+                        $$("excelUploader").define("formData", { Magic: 'route', Company: localStorage.getItem('CompanyID') });
+                        $$("excelUploader").fileDialog();
+                      }
+                    }
+                  },
+                  { view: "template", css: 'text-toolbar', borderless: true, template: 'Загрузка маршрутов из файла' }
+                ]
+              },
+              {
+                view: "datatable", id: "routeDownload", select: true, adjust: true, datatype: "mycsv", editable: true, resizeColumn: true, rowHeight: 24,
+                columns: [
+                  { id: "check", header: { content: "masterCheckbox" }, checkValue: 'on', uncheckValue: 'off', template: "{common.checkbox()}", width: 40 },
+                  { id: "data0", header: ["АП", { content: "textFilter" }], adjust: "data", minWidth: 20, css: { 'text-align': 'center' } },
+                  { id: "data1", header: ["ID", { content: "textFilter" }], adjust: "data", minWidth: 20, css: { 'text-align': 'right', 'background-color': '#fff799 !important' } },
+                  { id: "data2", header: ["Офис", { content: "textFilter" }], width: 70, sort: "string", editor: "text" },
+                  { id: "data3", header: ["Город", { content: "textFilter" }], width: 70, sort: "string", editor: "text" },
+                  { id: "data4", header: ["Сеть", { content: "textFilter" }], width: 70, sort: "string", editor: "text" },
+                  { id: "data5", header: ["Вывеска", { content: "textFilter" }], width: 70, sort: "string", editor: "text" },
+                  { id: "data6", header: ["Адрес", { content: "textFilter" }], adjust: "data", minWidth: 40, sort: "string", editor: "text" },
+                  { id: "data7", header: ["ПН", { content: "textFilter" }], adjust: "data", width: 50, sort: "string", editor: "select", options: ['Да', 'Нет'] },
+                  { id: "data8", header: ["ВТ", { content: "textFilter" }], adjust: "data", width: 50, sort: "string", editor: "select", options: ['Да', 'Нет'] },
+                  { id: "data9", header: ["СР", { content: "textFilter" }], adjust: "data", width: 50, sort: "string", editor: "select", options: ['Да', 'Нет'] },
+                  { id: "data10", header: ["ЧТ", { content: "textFilter" }], adjust: "data", width: 50, sort: "string", editor: "select", options: ['Да', 'Нет'] },
+                  { id: "data11", header: ["ПТ", { content: "textFilter" }], adjust: "data", width: 50, sort: "string", editor: "select", options: ['Да', 'Нет'] },
+                  { id: "data12", header: ["СБ", { content: "textFilter" }], adjust: "data", width: 50, sort: "string", editor: "select", options: ['Да', 'Нет'] },
+                  { id: "data13", header: ["ВС", { content: "textFilter" }], adjust: "data", width: 50, sort: "string", editor: "select", options: ['Да', 'Нет'] },
+                  { id: "data14", header: ["ID сотрудника", { content: "textFilter" }], adjust: "data", minWidth: 40, css: { 'text-align': 'right', 'background-color': '#fff799 !important' }, sort: "string" },
+                  { id: "data15", header: ["ФИО", { content: "textFilter" }], minWidth: 100, adjust: "data", sort: "string" },
+                  { id: "data16", header: ["Должность", { content: "textFilter" }], minWidth: 100, adjust: "data", sort: "string" },
+                  { id: "Result", header: ["Результат", { content: "textFilter" }], adjust: true, width: 120, hidden: true }
+                ]
+              }
+            ]
+          },
+          {
+            id: 'routes2',
+            rows: [
+              {
+                view: "toolbar", borderless: true,
+                elements: [
+                  {
+                    view: "button", type: "iconTop", icon: "fas fa-bars", width: 50,
+                    click: function () {
+                      if ($$("menu").config.hidden) {
+                        $$("menu").show();
+                      }
+                      else
+                        $$("menu").hide();
+                    }
+                  },
+                  {
+                    view: "button", type: 'icon', id: 'btnPeriodRoute', icon: 'far fa-calendar', label: "08.02.2017 - 08.02.2017", width: 200, tooltip: "Интервал дат маршрутов",
+                    click: function () {
+                      $$('winPeriodRoute').show(this.$view);
+                    }
+                  },
+                  {
+                    view: "segmented", multiview: true, value: 2, width: 300, id: 'segmentedRoute',
+                    options: [
+                      { id: "2", value: "По сотрудникам" },
+                      { id: "1", value: "Маршруты по ТТ" }
+                    ],
+                    on: {
+                      onChange: function (newv, oldv) {
+                        routeFlag = newv;
+                        setRouteFilterChange2();
+
+                      }
+                    }
+                  },
+                  { view: "checkbox", id: "IsRouteTime", labelRight: "Режим с таймингом", labelWidth: 14, customCheckbox: true, value: 0, click: function () { setRouteFilterChange2(); } },
+                  {},
+                  { view: "button", type: "icon", icon: "fas fa-file-excel", width: 50, tooltip: "Экспорт в Excel", click: "pageName = 'route2'; excel()" },
+                  { view: "button", type: "icon", icon: "fas fa-cloud-download-alt", width: 50, tooltip: "Загрузить из шаблона", click: "tab = 'route2'; download()" },
+                  { width: 5 },
+                  { view: "button", type: "icon", icon: "fas fa-sync", width: 50, tooltip: "Обновить", click: "getRoute2(webix.i18n.parseFormatStr($$('StartRoute').getValue()), webix.i18n.parseFormatStr($$('FinishRoute').getValue()));" },
+                ]
+              },
+              {
+                view: "datatable", id: "route2", select: true, resizeColumn: true, editable: true, fixedRowHeight: true, rowHeight: 24, leftSplit: 11,
+                scheme: {
+                  $change: function (item) {
+                    if (item.VisitPlan > item.VisitPlan2)
+                      item.$css = "highlight";
+                  }
+                },
+                columns: [
+                  { id: "PointID", header: ['ID ТТ', { content: 'textFilter' }], width: 50, minWidth: 40, css: { 'text-align': 'right', 'background-color': '#fff799 !important' }, sort: "string" },
+                  { id: "UserID", header: ["ID сотрудника", { content: "textFilter" }], width: 50, minWidth: 40, css: { 'text-align': 'right', 'background-color': '#fff799 !important' }, sort: "string" },
+                  { id: "OutCode", header: ["Код ТТ", { content: "textFilter" }], width: 60, minWidth: 40, sort: "string" },
+                  { id: "Extra1", header: ["Доп1", { content: "textFilter" }], width: 60, minWidth: 40, sort: "string" },
+                  { id: "OfficeName", header: ["Офис", { content: "textFilter" }], width: 80, minWidth: 40, sort: "string" },
+                  { id: "CityName", header: ["Город", { content: "textFilter" }], width: 90, minWidth: 40, sort: "string" },
+                  { id: "NetworkName", header: ["Сеть", { content: "textFilter" }], width: 100, minWidth: 40, sort: "string" },
+                  { id: "Name", header: ["Вывеска", { content: "textFilter" }], width: 80, minWidth: 40, sort: "string" },
+                  { id: "Address", header: ["Адрес", { content: "textFilter" }], width: 250, minWidth: 40, sort: "string" },
+                  { id: "MasterName", header: ["Руководитель", { content: "textFilter" }], width: 90, minWidth: 40, sort: "string" },
+                  { id: "UserName", header: ["Сотрудник", { content: "textFilter" }], width: 90, minWidth: 40, sort: "string" },
+                  { id: "RoleName", header: ["Должность", { content: "textFilter" }], width: 90, minWidth: 40, sort: "string" },
+                  { id: "CompanyName", header: ["Клиент", { content: "textFilter" }], width: 80, minWidth: 40, sort: "string" },
+                  { id: "VisitPlan", header: ["План", { content: "textFilter" }], width: 40, minWidth: 40, sort: "int", css: { 'text-align': 'center' } },
+                  { id: "VisitPlan2", header: ["Визитов", { content: "textFilter" }], width: 45, minWidth: 40, sort: "int", css: { 'text-align': 'center' } },
+                  { id: "FactCount", header: ["Факт", { content: "textFilter" }], width: 40, minWidth: 40, sort: "int", css: { 'text-align': 'center' } },
+                  { id: "FactPercent", header: ["Факт, %", { content: "textFilter" }], width: 50, minWidth: 50, sort: "int", css: { 'text-align': 'center' } },
+                  { id: "Description", header: ["Комментарий", { content: "textFilter" }], width: 100, minWidth: 50, sort: "string", editor: "popup" }
+                ],
+                on: {
+                  onItemClick: function (id, e, node) {
+                    if (id.column == "Description") {
+
+                      return;
+                    }
+
+                    if (id.column == "PointID" || id.column == "UserID" || id.column == "OutCode" || id.column == "Extra1" || id.column == "OfficeName" || id.column == "CityName" || id.column == "NetworkName" ||
+                      id.column == "Name" || id.column == "Address" || id.column == "MasterName" || id.column == "UserName" || id.column == "RoleName" || id.column == "CompanyName" ||
+                      id.column == "FactCount" || id.column == "FactPercent")
+                      return;
+
+                    // проверка на текущую дату
+                    var columnDate = $$('route2').getColumnConfig(id.column).footer[0].text;
+                    columnDate = new Date(columnDate.substring(6) + '-' + columnDate.substring(3, 5) + '-' + columnDate.substring(0, 2));
+                    var currentDate = new Date();
+                    currentDate = currentDate.setDate(currentDate.getDate() - 2);
+
+                    // ограничение для Маттела на правку машрутов задним числом
+                    if (company == 136) {
+                      if (currentDate > columnDate) {
+                        webix.message({ type: "error", text: "Правка маршрутов задним числом запрещена!", expire: 1000 });
+                        return;
+                      }
+                    }
+
+                    if ($$('IsRouteTime').getValue() == 0) {
+                      var item = this.getItem(id);
+
+                      if ($$('IsRouteTime').getValue() == 0) {
+                        if (item[id.column] == '')
+                          item[id.column] = 'Да';
+                        else
+                          item[id.column] = '';
+
+                        $$('route2').updateItem(item.id, item);
+                        $$('route2').editStop();
+
+                        SetRoute2(item.PointID, item.RoleName, item.CompanyName, item.UserID, $$('route2').getColumnConfig(id.column).footer[0].text, item[id.column]);
+                      }
+                    }
+                  },
+                  onAfterEditStop: function (state, editor, ignoreUpdate) {
+                    if (state.value != state.old) {
+
+                      var item = $$("route2").getItem(editor.row);
+
+                      if (editor.column == "Description") {
+                        SetRouteDescription2(item.CompanyName, item.PointID, item.UserID, webix.i18n.parseFormatStr($$('StartRoute').getValue()), state.value);
+
+                        return;
+                      }
+
+
+                      // проверка на текущую дату
+                      var columnDate = editor.config.footer[0].text;
+                      columnDate = new Date(columnDate.substring(6) + '-' + columnDate.substring(3, 5) + '-' + columnDate.substring(0, 2));
+                      var currentDate = new Date();
+                      currentDate = currentDate.setDate(currentDate.getDate() - 10);
+
+                      /*if (currentDate > columnDate) {
+                        webix.message({ type: "error", text: "Правка маршрутов задним числом запрещена!", expire: 1000 });
+                        return;
+                      }*/
+
+
+                      if (state.value == 'Нет')
+                        item[editor.column] = '';
+
+                      $$('route2').updateItem(item.id, item);
+
+                      SetRoute2(item.PointID, item.RoleName, item.CompanyName, item.UserID, editor.config.footer[0].text, state.value);
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          {
+            id: 'route2Downloads',
+            rows: [
+              {
+                view: "toolbar", borderless: true,
+                elements: [
+                  {
+                    view: "button", type: "iconTop", icon: "fas fa-arrow-left", width: 50,
+                    on: {
+                      onItemClick: function () {
+                        if ($$('btn-route-download-run2').isVisible())
+                          getRoute2(webix.i18n.parseFormatStr($$('StartRoute').getValue()), webix.i18n.parseFormatStr($$('FinishRoute').getValue()));
+
+                        $$('btn-route-download2').show();
+                        $$('btn-route-download-run2').hide();
+
+                        $$('navigation').back();
+                      }
+                    }
+                  },
+                  { view: "button", type: 'icon', id: 'btn-route-download-run2', icon: "fas fa-play", label: 'Применить', width: 150, click: "loadRoute2()", hidden: true },
+                  {
+                    view: "button", id: 'btn-route-download2', label: '<span class="webix_icon fas fa-cloud-download-alt">  </span><span class="text">Загрузить</span>', width: 170, tooltip: "Загрузить",
+                    on: {
+                      onItemClick: function () {
+                        tab = 'route2';
+                        $$("excelUploader").define("formData", { Magic: 'route2', Company: localStorage.getItem('CompanyID') });
+                        $$("excelUploader").fileDialog();
+                      }
+                    }
+                  },
+                  { view: "template", css: 'text-toolbar', borderless: true, template: 'Загрузка маршрутов из файла' }
+                ]
+              },
+              {
+                view: "datatable", id: "route2Download", select: true, adjust: true, datatype: "mycsv", editable: true, resizeColumn: true, fixedRowHeight: true, rowHeight: 24,
+                columns: [
+                  { id: "check", header: { content: "masterCheckbox" }, checkValue: 'on', uncheckValue: 'off', template: "{common.checkbox()}", width: 40 },
+                  { id: "data0", header: ["ID ТТ", { content: "textFilter" }], width: 50, minWidth: 40, css: { 'text-align': 'right', 'background-color': '#fff799 !important' }, sort: "int" },
+                  { id: "data1", header: ["ID сотрудника", { content: "textFilter" }], width: 50, minWidth: 40, css: { 'text-align': 'right', 'background-color': '#fff799 !important' }, sort: "int" },
+                  { id: "data2", header: ["Код ТТ", { content: "textFilter" }], width: 60, minWidth: 40, sort: "string" },
+                  { id: "data3", header: ["Доп1", { content: "textFilter" }], width: 60, minWidth: 40, sort: "string" },
+                  { id: "data4", header: ["Офис", { content: "textFilter" }], width: 80, minWidth: 40, sort: "string" },
+                  { id: "data5", header: ["Город", { content: "textFilter" }], width: 90, minWidth: 40, sort: "string" },
+                  { id: "data6", header: ["Сеть", { content: "textFilter" }], width: 100, minWidth: 40, sort: "string" },
+                  { id: "data7", header: ["Вывеска", { content: "textFilter" }], width: 80, minWidth: 40, sort: "string" },
+                  { id: "data8", header: ["Адрес", { content: "textFilter" }], width: 150, minWidth: 40, sort: "string" },
+                  { id: "data9", header: ["Руководитель", { content: "textFilter" }], width: 90, minWidth: 40, sort: "string" },
+                  { id: "data10", header: ["Сотрудник", { content: "textFilter" }], width: 90, minWidth: 40, sort: "string" },
+                  { id: "data11", header: ["Должность", { content: "textFilter" }], width: 90, minWidth: 40, sort: "string" },
+                  { id: "data12", header: ["Клиент", { content: "textFilter" }], width: 90, minWidth: 40, sort: "string" },
+                  { id: "data13", header: ["План", { content: "textFilter" }], width: 40, minWidth: 40, sort: "int", css: { 'text-align': 'center' } },
+                  { id: "data14", header: ["Визитов", { content: "textFilter" }], width: 45, minWidth: 40, sort: "int", css: { 'text-align': 'center' } },
+                  { id: "data15", header: ["Факт", { content: "textFilter" }], width: 45, minWidth: 40, sort: "int", css: { 'text-align': 'center' } },
+                  { id: "data16", header: ["Факт, %", { content: "textFilter" }], width: 45, minWidth: 40, sort: "int", css: { 'text-align': 'center' } },
+                  { id: "data17", header: ["Комментарий", { content: "textFilter" }], width: 45, minWidth: 40, sort: "int", css: { 'text-align': 'center' } },
+                ]
+              }
+            ]
+          },
+          {
+            id: 'timeSheets',
+            rows: [
+              {
+                view: "toolbar", id: "toolbar-timeSheet",
+                elements: [
+                  {
+                    view: "button", type: "iconTop", icon: "fas fa-bars", width: 50,
+                    click: function () {
+                      if ($$("menu").config.hidden) {
+                        $$("menu").show();
+                      }
+                      else
+                        $$("menu").hide();
+                    }
+                  },
+                  {
+                    view: "datepicker", id: 'Borned', value: new Date(), timepicker: false, width: 150,
+                    on: {
+                      onChange: function () {
+                        getTimeSheet(webix.i18n.parseFormatStr($$('Borned').getValue()));
+                      }
+                    }
+                  },
+                  { view: "template", css: 'text-toolbar', borderless: true, template: (isEng) ? 'Time sheet' : "Табель рабочего времени" },
+                  {},
+
+                  { view: "button", type: "iconTop", icon: "fas fa-sync", width: 50, tooltip: (isEng) ? 'Refresh' : "Обновить", click: "getTimeSheet(webix.i18n.parseFormatStr($$('Borned').getValue()))" },
+                ]
+              },
+              {
+                view: "datatable", id: "timeSheet", select: true, resizeColumn: true, editable: true, rowHeight: 24,
+                columns: [
+                  { id: "UserName", header: ["ФИО", { content: "textFilter" }], minWidth: 100, adjust: "data", sort: "string" },
+                  { id: "RoleName", header: ["Должность", { content: "textFilter" }], minWidth: 100, adjust: "data", sort: "string" },
+                  { id: "status", header: "Выходной", template: "{common.checkbox()}", width: 90, css: { 'text-align': 'center' } }
+                ],
+                on: {
+                  onCheck: function (id, col, val) {
+                    var item = $$('timeSheet').getItem(id);
+
+                    $.ajax({
+                      url: URLname + 'Services/Desktop.asmx/SetTimeSheet',
+                      data: JSON.stringify({ 'User': item.ID, 'Borned': webix.i18n.parseFormatStr($$('Borned').getValue()), 'Status': item.status }),
+                      error: function (xhr, ajaxOptions, thrownError) {
+                        //alert(xhr);
+                      }
+                    });
+                  }
+                }
+              }
+            ]
+          },
+
+        ]
+      });
+
+      // левое меню
+      webix.ui({
+        view: "sidemenu", id: "menu", width: 200, position: "left",
+        state: function (state) {
+          var toolbarHeight = $$("headTollbar").$height;
+          state.top = toolbarHeight;
+          state.height -= toolbarHeight;
+        },
+        css: "my_menu",
+        body: {
+          view: "list", id: 'left-menu', borderless: true, scroll: false, select: true, type: {
+            height: 40
+          },
+          template: "<span class='webix_icon fas fa-#icon#'></span> #value#",
+          data: [
+            { id: 0, value: "" },
+            { id: 1, value: (isEng) ? 'Mobile interface' : "Мобильный интерфейс", icon: "arrow-left" },
+            { id: 2, value: (isEng) ? 'Reports' : "Отчеты", icon: "chart-area" },
+            { id: 10, value: (isEng) ? 'Routes' : "Маршруты на неделю", icon: "map-marker" },
+            { id: 15, value: (isEng) ? 'Routes on dates' : "Маршруты на месяц", icon: "map-marker" },
+            //{ id: 20, value: (isEng) ? 'Time sheet' : "Табель", icon: "far fa-calendar" },
+            { id: 80, value: (isEng) ? 'Exit' : "Выход", icon: "power-off" }
+          ],
+          on: {
+            onItemClick: function (id) {
+              if (id == '1') {
+                sessionStorage.setItem('isReportView', '1');
+
+                var link = localStorage.getItem('MobSiteAddress');
+
+                var param =
+                  'GTS.Author=' + localStorage.getItem('Author') +
+                  '&GTS.UserName=' + localStorage.getItem('UserName') +
+                  '&GTS.RoleName=' + localStorage.getItem('RoleName') +
+                  '&GTS.CompanyID=' + localStorage.getItem('CompanyID') +
+                  '&GTS.CompanyName=' + localStorage.getItem('CompanyName') +
+                  '&GTS.IsRoute=' + localStorage.getItem('IsRoute') +
+                  '&GTS.IsPoint=' + localStorage.getItem('IsPoint') +
+                  '&GTS.IsUser=' + localStorage.getItem('IsUser') +
+                  '&GTS.IsTask=' + localStorage.getItem('IsTask') +
+                  '&GTS.Magic=' + localStorage.getItem('Magic') +
+                  '&GTS.Lang=' + localStorage.getItem('Lang') +
+                  '&GTS.Phone=' + localStorage.getItem('Phone') +
+                  '&GTS.BaseName=' + localStorage.getItem('BaseName') +
+                  '&GTS.Email=' + localStorage.getItem('Email') +
+                  '&GTS.IsRecognize=' + localStorage.getItem('IsRecognize') +
+                  '&GTS.SiteAddress=' + localStorage.getItem('SiteAddress');
+
+                window.location.href = link + param;
+
+                return;
+              }
+
+              if (id == '2') {
+                $$('nav2').show();
+
+                $$("menu").hide();
+                return;
+              }
+
+              if (id == '10') {
+                showProgress('navigation')
+
+                getRoute();
+
+                $$('routes').show();
+                $$("menu").hide();
+
+                return;
+              }
+
+              if (id == '15') {
+                showProgress('navigation')
+
+                getRoute2(webix.i18n.parseFormatStr($$('StartRoute').getValue()), webix.i18n.parseFormatStr($$('FinishRoute').getValue()));
+
+                $$('routes2').show();
+                $$("menu").hide();
+
+                return;
+              }
+
+              if (id == '20') {
+
+                $$('timeSheets').show();
+                $$("menu").hide();
+
+                return;
+              }
+
+              if (id == '80') {
+                exit();
+                return;
+              }
+            }
+          }
+        }
+      });
+
+      // выбор интервала
+      webix.ui({
+        view: "popup", id: 'winPeriod',
+        body: {
+          rows: [
+            {
+              cols: [
+                {
+                  view: "menu", layout: "y", select: true, width: 160,
+                  data: [
+                    { id: "1", value: (isEng) ? 'Last month' : "Прошлый месяц", icon: 'far fa-calendar' },
+                    { id: "2", value: (isEng) ? 'Current month' : "Текущий месяц", icon: 'far fa-calendar' },
+                    { id: "3", value: (isEng) ? 'Last week' : "Прошлая неделя", icon: 'far fa-calendar' },
+                    { id: "4", value: (isEng) ? 'Current week' : "Текущая неделя", icon: 'far fa-calendar' },
+                    { id: "5", value: (isEng) ? 'Yesterday' : "Вчера", icon: 'far fa-calendar' },
+                    { id: "6", value: (isEng) ? 'Today' : "Сегодня", icon: 'far fa-calendar' },
+                    { id: "7", value: (isEng) ? 'Yesterday and today' : "Вчера и сегодня", icon: 'far fa-calendar' }
+                  ],
+                  on: {
+                    onMenuItemClick: function (id) {
+                      setReportInterval(id);
+                    }
+                  }
+                },
+                { view: "calendar", id: 'Start', weekHeader: true, weekNumber: true, date: new Date(), events: webix.Date.isHoliday, width: 290 },
+                { view: "calendar", id: 'Finish', weekHeader: true, weekNumber: true, date: new Date(), events: webix.Date.isHoliday, width: 290 },
+              ]
+            },
+            {
+              view: "button", autoWidth: true, value: (isEng) ? 'Apply' : "Применить",
+              click: function () {
+
+                $$('btnPeriod').define('label', webix.i18n.parseFormatStr($$('Start').getValue()) / + ' - ' + webix.i18n.parseFormatStr($$('Finish').getValue()));
+                $$('btnPeriod').refresh();
+
+                $$('winPeriod').hide();
+              }
+            },
+          ]
+        },
+        on: {
+          onHide: function () {
+
+            webix.i18n.setLocale("ru-RU")
+
+            $$('btnPeriod').define('label', webix.i18n.parseFormatStr($$('Start').getValue()) + ' - ' + webix.i18n.parseFormatStr($$('Finish').getValue()));
+            $$('btnPeriod').refresh();
+
+            setFilterChange();
+
+            value: (isEng) ? webix.i18n.setLocale("en-US") : webix.i18n.setLocale("ru-RU");
+
+            if (IsOnline)
+              refresh();
+          }
+        }
+      });
+
+      // фильтры
+      webix.ui({
+        view: "popup", id: 'winFilter', minWidth: 350, minHeight: 400, height: 450, move: true, resize: true, borderless: true, autofit: true, body: listReport
+      });
+
+      // поля
+      webix.ui({
+        view: "popup", id: 'winField', minWidth: 350, minHeight: 300, height: 350, move: true, resize: true, borderless: true, autofit: true, body: listField
+      });
+
+      // рекламации по визитам
+      /*webix.ui({
+        view: "popup", id: 'winTaskVisit', minWidth: 700, minHeight: 400, height: 450, move: true, resize: true, borderless: true, body: listTaskVisit
+      });*/
+
+      webix.ui({
+        view: "window", id: 'winTaskVisit', minWidth: 700, minHeight: 400, height: 450, move: true, resize: true, borderless: true,
+        head: {
+          rows: [
+            {
+              view: "toolbar", height: 40, borderless: true,
+              cols: [
+                {
+                  view: "button", id: 'buttonTaskVisit', type: "icon", width: 120, label: "Сохранить", icon: "fas fa-save",
+                  click: function () {
+                    var taskID = '';
+                    var taskName = '';
+
+                    var list = $$('listTask');
+
+                    for (var _id in list.data.pull) {
+                      var item = list.getItem(_id);
+
+                      if (item != null)
+                        if (item.IsActive == 1) {
+                          taskID = taskID + item.id + '|';
+                          taskName = taskName + item.Name + ', ';
+                        }
+                    }
+
+                    saveTaskVisit(taskID, taskName);
+                  }
+                },
+                { view: "button", type: "danger", label: "Планограммы", width: 150, click: function () { getPlanograms(); } },
+                {},
+                { view: "button", type: 'icon', icon: "fas fa-times", width: 50, click: function () { $$('winTaskVisit').hide(); } },
+              ]
+            },
+            { view: "template", id: 'taskVisitHeader', css: 'text-toolbar', borderless: true, template: "", height: 40 },
+          ]
+        },
+        body: listTaskVisit
+      })
+
+      // выбор интервала по маршрутам
+      webix.ui({
+        view: "popup", id: 'winPeriodRoute',
+        body: {
+          rows: [
+            {
+              cols: [
+                {
+                  view: "menu", layout: "y", select: true, width: 200,
+                  data: [
+                    { id: "1", value: "Прошлый месяц", icon: 'far fa-calendar' },
+                    { id: "2", value: "Текущий месяц", icon: 'far fa-calendar' },
+                    { id: "3", value: "Прошлая неделя", icon: 'far fa-calendar' },
+                    { id: "4", value: "Текущая неделя", icon: 'far fa-calendar' }
+
+                  ],
+                  on: {
+                    onMenuItemClick: function (id) {
+                      setRouteInterval(id);
+                    }
+                  }
+                },
+                { view: "calendar", id: 'StartRoute', weekHeader: true, weekNumber: true, date: new Date(), events: webix.Date.isHoliday, width: 290 },
+                { view: "calendar", id: 'FinishRoute', weekHeader: true, weekNumber: true, date: new Date(), events: webix.Date.isHoliday, width: 290 },
+              ]
+            },
+            {
+              view: "button", autoWidth: true, value: "Применить",
+              click: function () {
+                $$('btnPeriodRoute').define('label', webix.i18n.parseFormatStr($$('StartRoute').getValue()) + ' - ' + webix.i18n.parseFormatStr($$('FinishRoute').getValue()));
+                $$('btnPeriodRoute').refresh();
+
+                $$('winPeriodRoute').hide();
+              }
+            },
+          ]
+        },
+        on: {
+          onHide: function () {
+            $$('btnPeriodRoute').define('label', webix.i18n.parseFormatStr($$('StartRoute').getValue()) + ' - ' + webix.i18n.parseFormatStr($$('FinishRoute').getValue()));
+            $$('btnPeriodRoute').refresh();
+
+            setRouteFilterChange2();
+          }
+        }
+      });
+
+      webix.ui({
+        id: "excelUploader", view: "uploader", upload: "../uploadExcel.aspx", apiOnly: true, height: 1, type: 'clean',
+        on: {
+          onBeforeFileAdd: function (item) {
+            var type = item.type.toLowerCase();
+            if (type != "txt") {
+              webix.message({ type: "error", text: (isEng) ? 'Only .txt' : "Только файлы txt!", expire: 1000 });
+              return false;
+            }
+          },
+          onAfterFileAdd: function () {
+            showProgress($$('navigation'));
+          },
+
+          onFileUpload: function (item) {
+            onExcelUpload(item);
+          },
+          onFileUploadError: function (item) {
+            onExcelUpload(item);
+          }
+        }
+      });
+
+      function img(obj) {
+        return '<img src="' + obj.src + '" class="content" ondragstart="return false"/>'
+      }
+
+      // окно для просмотра дополнительных фото
+      webix.ui({
+        view: "window", id: "winPhoto", width: (window.screen.availWidth * 0.5), height: (window.screen.availHeight * 0.75), move: true, resize: true, position: "center", //fullscreen: true,
+        head: {
+          rows: [
+            {
+              view: "toolbar", id: 'toolbarHeadFull',
+              cols: [
+                {},
+                {
+                  view: "button", label: 'Закрыть', width: 100, align: 'right',                                                                                     //кнопка закрыть
+                  on: {
+                    onItemClick: function () {
+
+                      $$('winPhoto').hide();
+
+                      var list = $$('reportPhoto');
+
+                      if (pageName == 'reportTotal')
+                        list = $$('reportTotal');
+
+                      if (pageName == 'reportVisit')
+                        list = $$('photoVisit');
+
+                      var item = list.getSelectedId();
+                      if (item == null)
+                        return;
+
+                      list.showItem(item.id);
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        body: {
+          rows: [
+            {
+              cols: [
+                { view: "template", id: 'btnPhotoLayerFull', css: 'text-toolbar', borderless: true, template: "", height: 50 },                                     //описание к фото
+                { view: "button", type: "iconTop", id: 'photoLeftFull1', icon: "fas fa-angle-double-left", width: 40, click: "showPrevAdditPhoto" },                       //кнопка влево
+                { view: "button", type: 'iconTop', id: 'photoRightFull1', icon: "fas fa-angle-double-right", width: 40, click: 'showNextAdditPhoto' },                     //кнопка вправо
+              ]
+            },
+            { view: "template", scroll: false, id: "photoDivFull", template: "<img scr='' id='photofulladd'/>", type: "line" }                                      //фотография
+          ]
+        }
+      });
+
+      // окно для просмотра фото в ПРО отчете
+      webix.ui({
+        type: "space",
+        id: "photoWind", view: "window", move: false, resize: false, fullscreen: true, head: false,
+        body: {
+          rows: [
+            {
+              cols: [
+                {
+                  minWidth: 400,
+                  rows: [
+                    {
+                      cols: [
+                        {
+                          cols: [
+                            { view: "button", type: 'iconTop', height: 40, id: 'btnSave', icon: "fas fa-save", click: "savePhotoPro" },
+                            { view: "button", type: 'iconTop', height: 40, id: 'btnZoom', icon: "fas fa-search-plus", click: "zoomPro" },
+                            {
+                              view: "button", type: "iconTop", height: 40, id: 'photoLeftFull2', icon: "fas fa-angle-double-left",
+                              on: {
+                                onItemClick: function (id, e) {
+                                  showPrevImage(visitList);
+                                }
+                              }
+                            },
+                            {
+                              view: "button", type: 'iconTop', height: 40, id: 'photoRightFull2', icon: "fas fa-angle-double-right",
+                              on: {
+                                onItemClick: function (id, e) {
+                                  showNextImage(visitList);
+                                }
+                              }
+                            },
+                            {
+                              view: "select", id: 'photoRatingPro', width: 80, options: [ratingValues[0], ratingValues[1], ratingValues[2], ratingValues[3], ratingValues[4], ratingValues[5]], value: ratingValues[0], hidden: (localStorage.getItem('IsPoint') == '0'),
+                              on: {
+                                onChange: function () {
+                                  onCheckRatingPro(this.getValue());
+                                }
+                              }
+                            },
+                            { view: "button", height: 40, label: 'Закрыть', click: '$$("photoWind").hide();' }
+                          ]
+                        },
+                      ]
+                    },
+
+
+                    //{ view: "template", css: "photo_window_labels", autoheight: true, template: "<big>Просмотр фото</big>", css: { 'text-align': 'center' } },
+                    {
+                      cols: [
+                        { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblBorned', template: "Дата:", width: 130 },
+                        { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblStart', template: "Начало визита:" },
+                        { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblFinish', template: "Окончание визита:" },
+                      ]
+                    },
+                    { height: 5, },
+                    {
+                      cols: [
+                        { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblNetworkName', template: "Сеть:" },
+                        { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblName', template: "Вывеска:" },
+                      ]
+                    },
+                    { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblAdress', template: "Адрес:" },
+
+                    { height: 10, },
+                    { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblUserName', template: "Сотрудник:" },
+                    { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblMasterName', template: "Руководитель:" },
+                    { height: 10, },
+                    { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblCategory', template: "Категория фотоотчета:" },
+                    { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblActionName', template: "Анкета:" },
+                    { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblQuestionName', template: "Вопрос:" },
+                    { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblBrand', template: "Бренд:" },
+                    { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblCompany', template: "Компания:" },
+                    { view: "template", css: "photo_window_labels", autoheight: true, id: 'lblDescription', template: "Комментарий:" },
+                    { view: "button", id: 'btnPlanograms', label: (isEng) ? "Planograms" : 'Планограммы', click: "getPlanograms()", hidden: (localStorage.getItem('CompanyID') != 111) },
+                    {
+                      id: "areaRecognize",
+                      rows: [
+                        {
+                          view: "button", label: "Показать распознанные SKU", on: {
+                            onItemClick: function () {
+                              return;
+
+                              $$('photoDivFull2').hide();
+                              $$('templateCanvasTestArt').show();
+
+                              const canvas = document.getElementById('canvasTestArtPic');
+                              const ctx = canvas.getContext('2d');
+
+                              var image = new Image();
+
+                              image.onload = function () {
+                                canvas.width = image.width;
+                                canvas.height = image.height;
+
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                                ctx.drawImage(image, 0, 0);
+
+                                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; // прозрачный цвет
+                                ctx.fillRect(0, 0, canvas.width, canvas.height); // закрасить canvas прозрачным цветом
+
+                                ctx.strokeStyle = 'yellow';
+                                ctx.font = "10px Roboto";
+
+
+                                // загрузка распознанных областей по SKU
+                                $.ajax({
+                                  url: URLname + 'Services/AI.asmx/GetArtFull',
+                                  timeout: 300000,
+                                  data: JSON.stringify({ 'PhotoID': photoID }),
+                                  success: function (data) {
+                                    var items = JSON.parse(data.d);
+                                    var count = items.length;
+
+                                    ctx.beginPath();
+                                    ctx.strokeStyle = 'yellow';
+
+                                    for (var i = 0; i < count; i++)
+                                      drawBound(items[i].ArtName, items[i].TopValue, items[i].LeftValue, items[i].RightValue, items[i].BottomValue);
+                                  },
+                                  error: function (xhr, ajaxOptions, thrownError) {
+                                    alert(xhr.responseText);
+                                  },
+                                  complete: function () {
+                                    ctx.stroke();
+                                  }
+                                });
+                              }
+                              image.src = linkPhoto;
+
+                              function drawBound(artName, top, left, right, bottom) {
+                                var height = bottom - top;
+                                var delta = Math.floor(Math.random() * height);
+
+                                ctx.rect(left, top, right - left, bottom - top);
+                                ctx.strokeText(artName, left, top + delta);
+                              }
+
+                              /*zoomPro();
+
+                              var c = document.getElementById("canvasPro");
+                              var ctx = c.getContext("2d");
+                              ctx.beginPath();
+                              ctx.rect(20, 20, 150, 100);
+                              ctx.stroke();
+
+                              // загрузка распознанных SKU c координатами
+                              $.ajax({
+                                url: URLname + 'Services/AI.asmx/GetArtFull',
+                                timeout: 300000,
+                                data: JSON.stringify({ 'PhotoID': photoID }),
+                                success: function (data) {
+                                  var list = JSON.parse(data.d);
+
+                                  for (var i = 0; i < list.length; i++) {
+                                    var obj = list[i];
+                                  }
+                                },
+                                error: function (xhr, ajaxOptions, thrownError) {
+                                  webix.message({ type: "error", text: "Потеряно соединение с сервером. Данные не получены.", expire: 1000 });
+                                }
+                              });*/
+                            }
+                          }
+                        },
+                        {
+                          view: "datatable", id: "recSKU", select: true, resizeColumn: true, fixedRowHeight: false, rowHeight: 24,
+                          columns: [
+                            { id: "BrandName", header: [(isEng) ? 'Brand' : "Бренд", { content: "textFilter" }], minWidth: 90, sort: "string" },
+                            { id: "Name", header: [(isEng) ? 'Name' : "Название", { content: "textFilter" }], minWidth: 100, fillspace: true, sort: "string" },
+                            { id: "FaceCount", header: [(isEng) ? 'Faces' : "Фейсы", { content: "textFilter" }], width: 40, sort: "int" }
+                          ],
+                          on: {
+                            onItemClick: function (id) { updateStatusUserVisit(id) }
+                          }
+                        }
+                      ]
+                    },
+                    { id: "freeArea" },
+                    { view: "template", css: "photo_window_labels", autoheight: true, template: "<big>Претензия</big>", css: { 'text-align': 'center' } },
+                    {
+                      cols: [
+                        { view: "textarea", id: 'newTaskTextPro', maxHeight: 100, minHeight: 40, height: 40, placeholder: (isEng) ? "Enter text" : "Введите текст претензии", type: "clean", css: { 'background': '#97B6D8' } },
+                        {
+                          view: "button", type: 'iconTop', icon: 'fas fa-paper-plane', label: "", height: 45, width: 50, css: { 'box-shadow': '0 5px 10px 0 rgba(0,0,0,0.2)' }, on: {
+                            onItemClick: function () {
+                              var GUID2 = GUID
+                              var photoID2 = photoID
+                              var pointID2 = pointID
+                              var acceptor2 = acceptor
+                              var borned2 = borned
+
+                              var text = $$('newTaskTextPro').getValue().replace(new RegExp("\n", 'g'), "<br\>").replace(new RegExp("'", 'g'), "\'").replace(new RegExp('"', 'g'), '\"').trim();
+                              $$('newTaskTextPro').setValue('');
+
+                              //11.10.23 проверка гуида, если на эту фото только что уже отправили претензию
+                              if (typeof GUID_old !== "undefined") {
+                                if (GUID_old == GUID2) {
+                                  webix.message({ type: "error", text: (isEng) ? "The claim has already been sent" : "Претензия уже отправлена", expire: 1000 });
+                                  return;
+                                }
+                              }
+                              GUID_old = GUID2
+
+
+                              if (text == '') {
+                                webix.message({ type: "error", text: (isEng) ? "Enter text" : "Введите текст претензии", expire: 1000 });
+                                return;
+                              }
+
+                              $.ajax({
+                                url: URLname + 'Services/UI.asmx/SetPhotoFromReport',
+                                timeout: 120000,
+                                data: JSON.stringify({ 'User': localStorage.getItem('Author'), 'GUID': GUID2, 'PhotoID': photoID2 }),
+                                success: function (data) {
+                                  //претензия отправляется со стандартной категорией (общая) и на имя автора фото
+                                  $.ajax({
+                                    url: URLname + 'Services/UI.asmx/SetTask',
+                                    timeout: 120000,
+                                    data: JSON.stringify({ 'User': localStorage.getItem('Author'), 'Point': pointID2, 'Acceptor': acceptor2, 'Text': ('Задание по фото от ' + borned2 + ': ' + text), 'Category': 6, 'GUID': GUID2 }),
+                                    success: function (data) {
+
+                                    },
+                                    error: function (xhr, ajaxOptions, thrownError) {
+                                      alert(xhr.responseText);
+                                    },
+                                    complete: function () { }
+                                  });
+
+                                },
+                                error: function (xhr, ajaxOptions, thrownError) {
+                                  alert(xhr.responseText);
+                                },
+                                complete: function () {
+                                  $$('navigation').hideProgress();
+
+                                  webix.message({ type: "success", text: "Претензия отправлена", expire: 1500 });
+                                }
+                              });
+                            }
+                          }
+                        }
+                      ]
+                    },
+
+                    { height: 20, }
+                  ]
+                },
+                { view: "resizer" },
+                {
+                  rows: [
+                    { view: "template", scroll: false, id: "photoDivFull2", template: "<img scr='' id='photofull2'/>", type: "line" },
+                    { view: "template", id: "templateCanvasTestArt", content: "canvasTestArtPic", scroll: "xy", hidden: true }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        on: {
+          onHide: function () { $$('photoWind').hide(); },
+          onKeyPress: function (code, e) {
+            if (code == 27)
+              $$('photoWind').hide();
+          }
+        }
+      });
+
+      // доступ пользователей к кастомным отчетам
+      webix.ui({
+        view: "popup", id: 'winReportAccess', width: 400, height: 400,
+        body: {
+          rows: [
+            {
+              view: "toolbar", height: 40, borderless: true,
+              cols: [
+                {
+                  view: "button", type: "icon", width: 120, label: (isEng) ? 'Clear' : "Очистить", icon: "fas fa-trash-alt",
+                  click: function () {
+                    var row = $$('listReportAccess').find(function (obj) { return (obj.IsActive == 1) });
+
+                    for (var i = 0; i < row.length; i++)
+                      row[i].IsActive = 0;
+
+                    $$('listReportAccess').refresh();
+
+                    $.ajax({
+                      url: URLname + 'Services/Custom.asmx/SetAccess',
+                      data: JSON.stringify({ 'Report': customReportID, 'Role': -2, 'User': -2, 'Status': 0, 'Author': localStorage.getItem('Author') }),
+                      success: function () {
+                        $$('buttonAccessReport').define({ badge: 0 });
+                        $$('buttonAccessReport').refresh();
+                      },
+                      error: function (xhr, ajaxOptions, thrownError) {
+                        //alert(xhr);
+                      }
+                    });
+                  }
+                },
+                {}
+              ]
+            },
+            {
+              view: "search", value: "", placeholder: (isEng) ? 'Search...' : "Поиск...", type: "clean",
+              on: {
+                onTimedKeyPress: function () {
+                  var value = this.getValue().toUpperCase();
+                  var list = $$('listReportAccess');
+
+                  if ((value == '') || (value.length < 3)) {
+                    if (value == '') list.filter('');
+
+                    return;
+                  }
+
+                  var search = value.split(' ');
+
+                  list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[0]) != -1; });
+                  if (search[1] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[1]) != -1; }, null, true);
+                  if (search[2] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[2]) != -1; }, null, true);
+                  if (search[3] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[3]) != -1; }, null, true);
+                  if (search[4] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[4]) != -1; }, null, true);
+                  if (search[5] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[5]) != -1; }, null, true);
+                  if (search[6] != null)
+                    list.filter(function (obj) { return obj.Name.toString().toUpperCase().indexOf(search[6]) != -1; }, null, true);
+                }
+              }
+            },
+            {
+              view: "list", id: "listReportAccess", template: "html->item_checked2", select: true, type: "line", autowidth: true,
+              type: {
+                height: "auto",
+                Badge: function (obj) {
+                  if (obj.IsActive == 1) {
+                    return "<div style='float: left; margin: 0; padding: 0; width: 20px'><i class='far fa-check-square'></i></div>";//'<img src="../i/btnCheck.png" style="margin:0; padding: 0"/>';
+                  }
+                  else return '';
+                }
+              },
+              on: {
+                onItemClick: function (id) {
+                  var item = this.getItem(id);
+
+                  item.IsActive = (item.IsActive == 1) ? 0 : 1;
+                  this.updateItem(id, item);
+
+                  if (item.UserID == -1 && item.RoleID == -1) { // если выбраны все пользователи
+                    this.data.each(function (obj) {
+                      obj.IsActive = (obj.UserID == -1 && obj.RoleID == -1);
+                      this.updateItem(obj.id, obj);
+                    });
+
+                  }
+                  else {
+                    this.data.each(function (obj) {
+                      if (obj.UserID == -1 && obj.RoleID == -1) {
+                        obj.IsActive = 0;
+                        this.updateItem(obj.id, obj);
+
+                        return false;
+                      }
+                    });
+                  }
+
+                  $.ajax({
+                    url: URLname + 'Services/Custom.asmx/SetAccess',
+                    data: JSON.stringify({ 'Report': customReportID, 'Role': item.RoleID, 'User': item.UserID, 'Status': item.IsActive, 'Author': localStorage.getItem('Author') }),
+                    success: function () {
+                      var row = $$('listReportAccess').find(function (obj) { return (obj.IsActive == 1) });
+
+                      $$('buttonAccessReport').define({ badge: row.length });
+                      $$('buttonAccessReport').refresh();
+                    },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                      //alert(xhr);
+                    }
+                  });
+
+                }
+              }
+            },
+            {
+              view: "button", autoWidth: true, value: "Применить",
+              click: function () {
+                $$('winReportAccess').hide();
+              }
+            },
+          ]
+        },
+        on: {
+          onHide: function () {
+            //refresh();
+          }
+        }
+      });
+
+
+
+      //track history
+      window.location.hash = "";
+
+      webix.extend($$("navigation"), webix.ProgressBar);
+      webix.extend($$("accPhotoReport"), webix.ProgressBar);
+      webix.extend($$("reportPhoto"), webix.ProgressBar);
+      webix.extend($$("reportVisit"), webix.ProgressBar);
+      webix.extend($$("reportReady"), webix.ProgressBar);
+
+      webix.i18n.setLocale("ru-RU");
+      $$('Start').setValue(new Date());
+      $$('Finish').setValue(new Date());
+
+      value: (isEng) ? webix.i18n.setLocale("en-US") : webix.i18n.setLocale("ru-RU");
+      $$('btnPeriod').define('label', webix.i18n.parseFormatStr($$('Start').getValue()) + ' - ' + webix.i18n.parseFormatStr($$('Finish').getValue()));
+      $$('btnPeriod').refresh();
+
+      getSetting();
+
+      if (localStorage.getItem('IsOnline') != null) {
+        IsOnline = (localStorage.getItem('IsOnline') == 'true');
+        $$('IsOnline').setValue(IsOnline ? 1 : 0);
+      }
+
+      if (localStorage.getItem('IsRoute') == 0) {
+        $$('left-menu').remove(10);
+        $$('left-menu').remove(15);
+        $$('left-menu').remove(20);
+      }
+
+
+
+      $$('StartRoute').setValue(new Date());
+      $$('FinishRoute').setValue(new Date());
+
+      $$('btnPeriodRoute').define('label', webix.i18n.parseFormatStr($$('StartRoute').getValue()) + ' - ' + webix.i18n.parseFormatStr($$('FinishRoute').getValue()));
+      $$('btnPeriodRoute').refresh();
+
+      tableName = 'pointVisit';
+
+      filterChange = IsOnline;
+
+      //стартовая страница с дашбордами (данные отображаются за текущий месяц)
+      $$("Start").setValue(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+      $$("Finish").setValue(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0));
+
+
+      $$('reportDashboard').show();
+      pageName = 'mainDashboard';
+      hideButton();
+      refresh();
+
+      $$("Start").setValue(new Date());
+      $$("Finish").setValue(new Date());
+
+      //скрыть для GFD, GFD_LT , JTI  и Storsk маршруты на неделю
+      if (localStorage.getItem('CompanyID') == 404 || localStorage.getItem('CompanyID') == 413 || localStorage.getItem('CompanyID') == 422 || localStorage.getItem('CompanyID') == 192) {
+        $$('left-menu').remove(10);
+      }
+    });
+
+
+  </script>
+
+  <script>
+    var googleKey = localStorage.getItem('googleKey');
+    const script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=' + googleKey;
+    document.body.appendChild(script);
+  </script>
+
+  <script src="https://unpkg.com/@googlemaps/markerclusterer/dist/index.min.js">
+  </script>
+
+  <script type="text/javascript">
+    var height = window.screen.availHeight - 130;
+    var width = window.screen.availWidth - 200;
+
+    var myMap;
+
+
+  </script>
+
+  <script src="../Lib/justgage/justgage.js"></script>
+  <script src="../Lib/justgage/raphael-2.1.4.min.js"></script>
+
+  <div id="map" style="width: 400px; height: 600px; display: none;"></div>
+  <div id="mapPhoto" style="width: 400px; height: 600px; display: none;"></div>
+  <div id="mapVisit" style="width: 400px; height: 600px; display: none;"></div>
+  <div id="mapMHP" style="width: 400px; height: 600px; display: none;"></div>
+  <div id="VinagroDistribution" style="width: 400px; height: 600px; display: none;"></div>
+  <div id="addReportPivot" style="width: 400px; height: 600px; display: none;"></div>
+  <div id="routeTotal" style="width: 400px; height: 600px; display: none;"></div>
+  <div id="routeError" style="width: 400px; height: 600px; display: none;"></div>
+  <div id="standartReportPivot" style="width: 400px; height: 600px; display: none;"></div>
+
+  <div id="DashPlanPoints" style="height:350px"></div>
+  <div id="DashPlanVisits" style="height:350px"></div>
+  <div id="DashPlanAP" style="height:350px"></div>
+
+  <canvas id='canvasTestArtPic' width='300' height='150'></canvas>
+
+</body>
+</html>
