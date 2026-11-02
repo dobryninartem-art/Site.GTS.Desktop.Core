@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
     <RootNamespace>Gts.Api</RootNamespace>
+    <UserSecretsId>5b300c50-66c8-48de-becc-020ffdf4b271</UserSecretsId>
     <!-- Исходники ведём в UTF-8, в отличие от legacy (Windows-1251). -->
   </PropertyGroup>
 
