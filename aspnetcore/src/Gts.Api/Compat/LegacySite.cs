@@ -39,7 +39,7 @@ public static class LegacySite
     public static IEndpointRouteBuilder MapLegacyPages(this IEndpointRouteBuilder app)
     {
         foreach (var (path, factory) in Pages)
-            app.MapMethods(path, new[] { "GET", "POST" }, ctx => RunPageAsync(ctx, factory()));
+            app.MapMethods(path, new[] { "GET", "POST" }, ctx => RunPageAsync(ctx, factory())).ExcludeFromDescription();
         return app;
     }
 

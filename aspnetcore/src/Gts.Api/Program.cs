@@ -58,7 +58,12 @@ builder.Services.AddScoped<VisitService>();
 
 #if !OFFLINE_CHECK
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    // Уникальный schemaId по полному имени типа: страхует от коллизий вложенных
+    // типов-запросов (PhoneRequest, SetVisitRequest и т.п.) — частая причина 500 на swagger.json.
+    c.CustomSchemaIds(t => (t.FullName ?? t.Name).Replace("+", "."));
+});
 #endif
 
 var app = builder.Build();

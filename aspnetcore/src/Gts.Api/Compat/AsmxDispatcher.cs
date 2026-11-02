@@ -57,8 +57,10 @@ public static class AsmxDispatcher
 
     public static IEndpointRouteBuilder MapAsmxServices(this IEndpointRouteBuilder app)
     {
-        app.MapMethods("/Services/{service}/{method}", new[] { "POST", "GET" }, HandleAsync);
-        app.MapGet("/Services/{service}", Describe);
+        // ExcludeFromDescription: эти динамические маршруты не должны попадать в Swagger —
+        // иначе генерация /swagger/v1/swagger.json падает (ApiExplorer не умеет описать {service}/{method}).
+        app.MapMethods("/Services/{service}/{method}", new[] { "POST", "GET" }, HandleAsync).ExcludeFromDescription();
+        app.MapGet("/Services/{service}", Describe).ExcludeFromDescription();
         return app;
     }
 
